@@ -1,5 +1,6 @@
 """Main backtest: python run_backtest.py [--refresh] [--mode wmsr|admm]"""
 import argparse
+from dataclasses import replace
 from pathlib import Path
 
 import pandas as pd
@@ -19,6 +20,9 @@ args = ap.parse_args()
 cfg = Config(mode=args.mode)
 rets, bench = load_returns(cfg, refresh=args.refresh)
 res = run_backtest(rets, cfg, default_agents(), benchmark=bench)
+hres = run_backtest(rets, replace(cfg, hierarchical=True), default_agents(), benchmark=bench)
+res.returns["MAS-H"] = hres.returns["MAS"]
+res.turnover["MAS-H"] = hres.turnover["MAS"]
 
 out = Path("results")
 out.mkdir(exist_ok=True)
@@ -45,4 +49,14 @@ plots.consensus_convergence(res.disagreement, out / "consensus_convergence.png")
 last = list(res.W_hist)[-1]
 plots.matrix_snapshot(res.W_hist[last], list(res.trust.columns), out / "consensus_matrix.png",
                       f"Consensus matrix W at {last.date()}")
+names = list(hres.capital.columns)
+last_h = list(hres.sub_capital)[-1]
+print("\nhierarchical: top subagent budget share per strategy at the last rebalance")
+for i, n in enumerate(names):
+    g = hres.sub_capital[last_h][i] / hres.sub_capital[last_h][i].sum()
+    print(f"  {n:14s} {rets.columns[g.argmax()]:6s} {g.max():.2f}  (equal share = {1 / len(g):.2f})")
+hres.capital.to_csv(out / "capital_hier.csv")
+plots.sub_capital_heatmap(hres.sub_capital[last_h], names, list(rets.columns), out / "sub_capital_heatmap.png",
+                          f"Budget share of asset subagents inside each strategy at {last_h.date()}")
+plots.sub_capital_area(hres.sub_capital, list(rets.columns), 0, names[0], out / "sub_capital_area.png")
 print(f"\nplots + csv written to {out}/")

@@ -23,15 +23,21 @@ class Agent:
 class Momentum(Agent):
     name = "Momentum"
 
+    def __init__(self, skip=21):
+        self.skip = skip
+
     def forecast(self, window):  # mean return of months t-12..t-1, skipping the latest month
-        return window[:-21].mean(0)
+        return window[:-self.skip].mean(0)
 
 
 class MeanReversion(Agent):
     name = "MeanReversion"
 
+    def __init__(self, n=5):
+        self.n = n
+
     def forecast(self, window):  # recent winners expected to fall, losers to rise
-        return -window[-5:].mean(0)
+        return -window[-self.n:].mean(0)
 
 
 class ShrinkageMean(Agent):
@@ -82,5 +88,8 @@ class AdversarialAgent(Agent):
         return mu
 
 
-def default_agents():
-    return [Momentum(), MeanReversion(), ShrinkageMean(), AR1(), EWMATrend(), LowVolTilt()]
+def default_agents(scale=1.0):
+    """scale = lookback / 252: the daily-bar windows (skip 21, last 5, halflife 63) are kept as
+    fixed fractions of the lookback so the same strategies run on any bar size."""
+    return [Momentum(max(1, round(21 * scale))), MeanReversion(max(1, round(5 * scale))), ShrinkageMean(), AR1(),
+            EWMATrend(63 * scale), LowVolTilt()]

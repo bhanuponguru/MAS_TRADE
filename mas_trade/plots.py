@@ -66,3 +66,26 @@ def matrix_snapshot(W, names, path, title):
     ax.set_title(title)
     fig.colorbar(im, ax=ax)
     _save(fig, path)
+
+
+def sub_capital_heatmap(G, strategies, tickers, path, title):
+    """Each strategy's budget shares over its asset subagents (rows sum to 1)."""
+    share = G / G.sum(1, keepdims=True)
+    fig, ax = plt.subplots(figsize=(11, 4.5))
+    im = ax.imshow(share, aspect="auto", cmap="viridis")
+    ax.set_xticks(range(len(tickers)), tickers, rotation=45, fontsize=8)
+    ax.set_yticks(range(len(strategies)), strategies, fontsize=8)
+    ax.set_title(title)
+    fig.colorbar(im, ax=ax)
+    _save(fig, path)
+
+
+def sub_capital_area(sub_capital, tickers, strategy_idx, strategy, path):
+    """One strategy's budget per asset subagent over the rebalances ($k)."""
+    dates = list(sub_capital)
+    data = np.array([sub_capital[d][strategy_idx] for d in dates]) / 1e3
+    fig, ax = plt.subplots(figsize=(11, 5))
+    ax.stackplot(dates, data.T, labels=tickers)
+    ax.set_title(f"{strategy}: capital run by each asset subagent ($k)")
+    ax.legend(loc="upper left", fontsize=6, ncol=5)
+    _save(fig, path)

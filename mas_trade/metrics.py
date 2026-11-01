@@ -4,24 +4,74 @@ import pandas as pd
 DAYS = 252
 
 
-def perf_stats(r):
-    """r: Series of daily simple returns."""
+def perf_stats(r, ppy=DAYS):
+    """r: Series of per-bar simple returns; ppy = bars per year (252 daily stocks, 365*bars/day for 24/7)."""
     r = r.dropna()
     eq = (1 + r).cumprod()
-    years = len(r) / DAYS
-    vol = r.std() * np.sqrt(DAYS)
+    years = len(r) / ppy
+    vol = r.std() * np.sqrt(ppy)
     return {
         "CAGR": eq.iloc[-1] ** (1 / years) - 1,
         "Vol": vol,
-        "Sharpe": r.mean() * DAYS / vol if vol > 0 else np.nan,
+        "Sharpe": r.mean() * ppy / vol if vol > 0 else np.nan,
         "MaxDD": (eq / eq.cummax() - 1).min(),
         "HitRate": (r > 0).mean(),
     }
 
 
-def metrics_table(returns, turnover=None):
-    """returns: DataFrame of daily returns per strategy; turnover: dict name -> annual turnover."""
-    tab = pd.DataFrame({c: perf_stats(returns[c]) for c in returns}).T
+def metrics_table(returns, turnover=None, ppy=DAYS):
+    """returns: DataFrame of per-bar returns per strategy; turnover: dict name -> annual turnover."""
+    tab = pd.DataFrame({c: perf_stats(returns[c], ppy) for c in returns}).T
     if turnover is not None:
         tab["Turnover"] = pd.Series(turnover)
     return tab
+
+
+def extended_stats(r, ppy=DAYS):
+    """perf_stats plus Sortino (downside deviation vs 0) and Calmar (CAGR / |MaxDD|)."""
+    r = r.dropna()
+    out = perf_stats(r, ppy)
+    dd = np.sqrt((np.minimum(r, 0.0) ** 2).mean()) * np.sqrt(ppy)
+    out["Sortino"] = r.mean() * ppy / dd if dd > 0 else np.nan
+    out["Calmar"] = out["CAGR"] / abs(out["MaxDD"]) if out["MaxDD"] < 0 else np.nan
+    return out
+
+
+def _sharpe_rows(x, ppy):
+    sd = x.std(axis=-1, ddof=1)
+    return np.where(sd > 0, x.mean(axis=-1) / np.where(sd > 0, sd, 1.0) * np.sqrt(ppy), np.nan)
+
+
+def block_bootstrap_sharpe(r, ppy, block, ref=None, n_boot=2000, seed=0, chunk=100):
+    """Moving-block bootstrap of the annualised Sharpe of r (blocks keep short-range dependence).
+    With ref given, the same resampled blocks are applied to both and the Sharpe DIFFERENCE
+    r - ref is returned (paired, so the common market noise cancels).
+    Returns (point estimate, 5th pct, 95th pct)."""
+    df = pd.concat([r, ref], axis=1).dropna() if ref is not None else r.dropna().to_frame()
+    x = df.values
+    n = len(x)
+    block = int(min(max(block, 1), n))
+    rng = np.random.default_rng(seed)
+    nb = -(-n // block)
+    stat = lambda a: _sharpe_rows(a[..., 0], ppy) - (_sharpe_rows(a[..., 1], ppy) if ref is not None else 0.0)
+    point = float(stat(x[None])[0])
+    draws = []
+    for _ in range(-(-n_boot // chunk)):
+        starts = rng.integers(0, n - block + 1, (chunk, nb))
+        idx = (starts[:, :, None] + np.arange(block)).reshape(chunk, -1)[:, :n]
+        draws.append(stat(x[idx]))
+    d = np.concatenate(draws)[:n_boot]
+    return point, float(np.nanpercentile(d, 5)), float(np.nanpercentile(d, 95))
+
+
+def split_holdout(df, months):
+    """(development, holdout): the last `months` months are the holdout. The backtest is walk-forward
+    with nothing fitted, so splitting its output afterwards is legitimate; what must not happen is
+    tuning settings by looking at the holdout."""
+    cut = df.index[-1] - pd.DateOffset(months=months)
+    return df.loc[df.index < cut], df.loc[df.index >= cut]
+
+
+def yearly_returns(df):
+    """Compounded return per calendar year per column."""
+    return (1 + df).groupby(df.index.year).prod() - 1

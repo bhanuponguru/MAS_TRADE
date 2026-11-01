@@ -1,4 +1,6 @@
-"""Resilience experiment: one compromised agent (random all-in bets) under plain vs W-MSR consensus."""
+"""Resilience experiment: one compromised agent (random all-in bets) under plain vs W-MSR consensus.
+python run_adversary_experiment.py [--hier]  (--hier: two-level hierarchy with asset subagents)"""
+import sys
 from dataclasses import replace
 from pathlib import Path
 
@@ -11,7 +13,7 @@ from mas_trade.config import Config
 from mas_trade.data import load_returns
 from mas_trade.metrics import metrics_table
 
-cfg = Config()
+cfg = Config(hierarchical="--hier" in sys.argv)
 rets, bench = load_returns(cfg)
 runs = {
     "Clean (6 agents, W-MSR F=1)": (cfg, default_agents()),
@@ -34,5 +36,5 @@ tab = metrics_table(df, turnover)
 print(tab)
 out = Path("results")
 out.mkdir(exist_ok=True)
-tab.to_csv(out / "adversary_metrics.csv")
-plots.equity_curves(df, out / "adversary_equity.png", "Resilience to one adversarial agent")
+tab.to_csv(out / f"adversary_metrics{'_hier' if cfg.hierarchical else ''}.csv")
+plots.equity_curves(df, out / f"adversary_equity{'_hier' if cfg.hierarchical else ''}.png", "Resilience to one adversarial agent")
