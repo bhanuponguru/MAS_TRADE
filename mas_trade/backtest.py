@@ -8,6 +8,10 @@ At every rebalance date t (every H days), using only returns before t:
      post-consensus portfolio with its own capital until the next rebalance
   With cfg.hierarchical, each agent's capital is split over per-asset subagents G[i, k] (row sums
   = agent capital) and is reallocated between them by a second, subagent-level consensus.
+  5. safety layer (safety.supervise): the STL monitor reads the proposed system portfolio and the
+     system's own past returns; with cfg.safety the shield scales exposures toward cash.
+  Comparator "Central MV": one node solving the trust-weighted mean-variance problem that the
+  ADMM agents solve jointly (consensus.central_mv).
 """
 from dataclasses import dataclass
 
@@ -16,10 +20,11 @@ import pandas as pd
 
 from .agents import weights_from_mu
 from .capital import apply_pnl, reallocate_capital
-from .consensus import (admm_consensus, complete_graph, er_graph, run_consensus,
+from .consensus import (admm_consensus, central_mv, complete_graph, er_graph, run_consensus,
                         spectral_gap, trust_matrix, wmsr_trust_matrix)
 from .forecasting import trust_scores
 from .hierarchy import auto_eta, reallocate_budgets, sub_graph, sub_trust
+from .safety import supervise
 
 
 @dataclass
@@ -35,10 +40,17 @@ class BacktestResult:
     turnover: dict             # annualised turnover per strategy
     sub_capital: dict = None   # hierarchical only: rebalance date -> (A x N) $ run by each asset subagent
     sub_trust: dict = None     # hierarchical only: rebalance date -> (A x N) subagent trust
+    safety: pd.DataFrame = None  # STL monitor / shield reading at each rebalance (safety.supervise)
+    central_weights: pd.DataFrame = None  # centralised mean-variance reference portfolio per rebalance
 
 
 def _cost(w_new, w_old, bps):
     return bps / 1e4 * np.abs(w_new - w_old).sum()
+
+
+def _scaled_cov(win):
+    Sig = np.atleast_2d(np.cov(win.T))
+    return Sig / max(np.mean(np.diag(Sig)), 1e-18) + 1e-3 * np.eye(len(Sig))
 
 
 def run_backtest(returns, cfg, agents, benchmark=None, eligible=None, funding=None):
@@ -59,6 +71,7 @@ def run_backtest(returns, cfg, agents, benchmark=None, eligible=None, funding=No
     T, H = cfg.lookback, cfg.rebalance_days
     t0 = T + cfg.warmup
     rebal = list(range(T, n_days - 1, H))
+    daily = cfg.safety and cfg.safety_daily
     adj = complete_graph(A) if cfg.graph == "complete" else er_graph(A, cfg.er_p, cfg.seed)
 
     big = n_days * A * N > 5e7                 # ~400 MB in float64: halve it on long intraday panels
@@ -66,10 +79,11 @@ def run_backtest(returns, cfg, agents, benchmark=None, eligible=None, funding=No
     standalone = np.zeros((n_days, A))   # daily return of each agent's own (pre-consensus) portfolio
     naive = np.zeros(n_days)
     ew = np.zeros(n_days)
+    central = np.zeros(n_days)
     sys_ret = np.zeros(n_days)
     cap_hist = np.full((n_days, A), np.nan)
-    prev_w, prev_naive, prev_ew = np.zeros((A, N)), np.zeros(N), np.zeros(N)
-    turn = {n: 0.0 for n in names + ["Naive avg", "EW long-only", "MAS"]}
+    prev_w, prev_naive, prev_ew, prev_central = np.zeros((A, N)), np.zeros(N), np.zeros(N), np.zeros(N)
+    turn = {n: 0.0 for n in names + ["Naive avg", "EW long-only", "Central MV", "MAS"]}
 
     c = None
     avail_since = None
@@ -77,7 +91,7 @@ def run_backtest(returns, cfg, agents, benchmark=None, eligible=None, funding=No
     sub_cap, sub_tr = {}, {}
     x_prev = None
     start_idx = None
-    trust_rows, weight_rows, dis_rows, gap_rows = [], [], [], []
+    trust_rows, weight_rows, dis_rows, gap_rows, safety_rows, central_rows = [], [], [], [], [], []
     agent_w, W_hist, trade_dates = {}, {}, []
 
     for t in rebal:
@@ -116,15 +130,24 @@ def run_backtest(returns, cfg, agents, benchmark=None, eligible=None, funding=No
         hist = standalone[max(T, t - cfg.trust_window):t]
         s = trust_scores(hist, H, cfg.trust_halflife, cfg.trust_power)
 
+        # ---- centralised reference: one node, same trust-weighted mean-variance problem as ADMM
+        w_central = np.zeros(N)
+        if el.sum() >= 2:
+            xc = central_mv(w[:, el], _scaled_cov(win[:, el]), s, cfg.central_gamma)
+            w_central[el] = xc / max(np.abs(xc).sum(), 1e-12)
+        central[t:e] = Rn[t:e] @ w_central
+        central[t] -= _cost(w_central, prev_central, cfg.cost_bps)
+        if trading:
+            turn["Central MV"] += np.abs(w_central - prev_central).sum()
+        prev_central = w_central
+
         if not trading:
             continue
 
         # ---- consensus on portfolios
         W = trust_matrix(adj, s)
         if cfg.mode == "admm":
-            Sig = np.cov(win[:, el].T)
-            Sig = Sig / np.mean(np.diag(Sig)) + 1e-3 * np.eye(el.sum())
-            xe, dis = admm_consensus(w[:, el], Sig, s, cfg.admm_gamma, cfg.admm_rho, cfg.K)
+            xe, dis = admm_consensus(w[:, el], _scaled_cov(win[:, el]), s, cfg.admm_gamma, cfg.admm_rho, cfg.K)
             x = np.zeros((A, N))
             x[:, el] = xe / np.maximum(np.abs(xe).sum(1, keepdims=True), 1e-12)
             x[frozen] = w[frozen]
@@ -135,6 +158,7 @@ def run_backtest(returns, cfg, agents, benchmark=None, eligible=None, funding=No
         eta1 = cfg.eta
         if eta1 == "auto":                       # per-strategy speed from its own standalone risk
             eta1 = auto_eta(hist.var(0), H, cfg.risk_aversion, cfg.cost_bps)
+        x_rec = x                                # agent portfolios recorded for date t (decided at t)
         if cfg.hierarchical:
             side = np.sign(x)
             if G is None:
@@ -142,7 +166,7 @@ def run_backtest(returns, cfg, agents, benchmark=None, eligible=None, funding=No
                 G = c[:, None] * np.abs(x) / np.maximum(np.abs(x).sum(1, keepdims=True), 1e-12)
                 start_idx, h_prev, total_prev = t, np.zeros(N), cfg.init_capital
             else:
-                h_prev = (side_prev * G).sum(0)
+                h_prev = (side_prev * G).sum(0)          # side_prev = exposure per $ (shield scale included)
                 total_prev = G.sum()
             c_new = reallocate_capital(G.sum(1), wmsr_trust_matrix(adj, s, cfg.F_capital), eta1, cfg.c_min)
             S2 = np.full((A, N), 1e-6)
@@ -156,20 +180,34 @@ def run_backtest(returns, cfg, agents, benchmark=None, eligible=None, funding=No
                 eta2[el] = auto_eta(win[:, el].var(0), H, cfg.risk_aversion, cfg.cost_bps)
             G = reallocate_budgets(G, c_new, S2, adj2, eta2, cfg.g_min, cfg.F_sub, frozen, x, el)
             sub_cap[dates[t]], sub_tr[dates[t]] = G.copy(), S2
+            side_raw = side
+            Sh, sinfo = supervise((side_raw * G).sum(0) / G.sum(), win, el, sys_ret[start_idx:t], cfg)
+            side = side_raw * Sh[None, :]                # shield: scaled-down exposure, the rest of G sits in cash
             h = (side * G).sum(0)                # $ position per stock (negative = short)
             cost = cfg.cost_bps / 1e4 * np.abs(h - h_prev).sum()
             total_at_rebalance = G.sum()         # pre-cost, so sum|h| / total <= 1
             G = G * (1 - cost / total_at_rebalance)
             turn["MAS"] += np.abs(h - h_prev).sum() / total_prev
-            side_prev = side
 
-            fee = cfg.short_fee_bps / 1e4 / cfg.periods_per_year * (side < 0)
+            fee = cfg.short_fee_bps / 1e4 / cfg.periods_per_year * np.clip(-side, 0, None)
+            sinfo["daily_cuts"] = 0
             for d in range(t, e):
+                if daily and d > t:              # D028: de-risk between rebalances, never re-risk
+                    Sd, _ = supervise((side_raw * G).sum(0) / G.sum(), R[d - T:d], el, sys_ret[start_idx:d], cfg)
+                    if (Sd < Sh - 1e-12).any():
+                        Sh = np.minimum(Sh, Sd)
+                        new_side = side_raw * Sh[None, :]
+                        traded = np.abs(((new_side - side) * G).sum(0)).sum()
+                        turn["MAS"] += traded / G.sum()
+                        G = G * (1 - cfg.cost_bps / 1e4 * traded / G.sum())
+                        side, sinfo["daily_cuts"] = new_side, sinfo["daily_cuts"] + 1
+                        fee = cfg.short_fee_bps / 1e4 / cfg.periods_per_year * np.clip(-side, 0, None)
                 G = G * (1.0 + side * Rn[d][None, :] - fee)
                 cap_hist[d] = G.sum(1)
                 prev_total = total_prev if d == t else cap_hist[d - 1].sum()
                 sys_ret[d] = cap_hist[d].sum() / prev_total - 1.0
             sys_ret[t] = cap_hist[t].sum() / total_prev - 1.0  # day-t return includes the trading cost
+            side_prev = side                     # exposure per $ actually held at the end of the period
         else:
             if c is None:
                 c = np.full(A, cfg.init_capital / A)
@@ -178,31 +216,49 @@ def run_backtest(returns, cfg, agents, benchmark=None, eligible=None, funding=No
                 h_prev = x_prev.T @ c            # $ positions held at end of previous period
                 total_prev = c.sum()
             c = reallocate_capital(c, wmsr_trust_matrix(adj, s, cfg.F_capital), eta1, cfg.c_min)
+            x_raw = x
+            Sh, sinfo = supervise(x_raw.T @ c / c.sum(), win, el, sys_ret[start_idx:t], cfg)
+            x = x_raw * Sh[None, :]                      # shield: scaled-down agent portfolios; the rest is cash
+            x_rec = x
             h = x.T @ c                          # $ position per stock (negative = short)
             cost = cfg.cost_bps / 1e4 * np.abs(h - h_prev).sum()
             total_at_rebalance = c.sum()         # pre-cost, so sum|h| / total <= 1
             c = c * (1 - cost / total_at_rebalance)
             turn["MAS"] += np.abs(h - h_prev).sum() / total_prev
-            x_prev = x
 
             short_fee = cfg.short_fee_bps / 1e4 / cfg.periods_per_year * np.clip(-x, 0, None).sum(1)
+            sinfo["daily_cuts"] = 0
             for d in range(t, e):
+                if daily and d > t:              # D028: de-risk between rebalances, never re-risk
+                    Sd, _ = supervise(x_raw.T @ c / c.sum(), R[d - T:d], el, sys_ret[start_idx:d], cfg)
+                    if (Sd < Sh - 1e-12).any():
+                        Sh = np.minimum(Sh, Sd)
+                        x_new = x_raw * Sh[None, :]
+                        traded = np.abs((x_new - x).T @ c).sum()
+                        turn["MAS"] += traded / c.sum()
+                        c = c * (1 - cfg.cost_bps / 1e4 * traded / c.sum())
+                        x, sinfo["daily_cuts"] = x_new, sinfo["daily_cuts"] + 1
+                        short_fee = cfg.short_fee_bps / 1e4 / cfg.periods_per_year * np.clip(-x, 0, None).sum(1)
                 c = apply_pnl(c, x @ Rn[d] - short_fee)
                 cap_hist[d] = c
                 prev_total = total_prev if d == t else cap_hist[d - 1].sum()
                 sys_ret[d] = cap_hist[d].sum() / prev_total - 1.0
             sys_ret[t] = cap_hist[t].sum() / total_prev - 1.0  # day-t return includes the trading cost
+            x_prev = x                           # portfolios actually held at the end of the period
 
         trade_dates.append(dates[t])
         trust_rows.append(s / s.sum())
         weight_rows.append(h / total_at_rebalance)
         dis_rows.append(dis)
         gap_rows.append(spectral_gap(W))
-        agent_w[dates[t]], W_hist[dates[t]] = x, W
+        safety_rows.append(sinfo)
+        central_rows.append(w_central)
+        agent_w[dates[t]], W_hist[dates[t]] = x_rec, W
 
     idx = dates[start_idx:]
     out = pd.DataFrame(
-        {"MAS": sys_ret[start_idx:], "Naive avg": naive[start_idx:], "EW long-only": ew[start_idx:],
+        {"MAS": sys_ret[start_idx:], "Central MV": central[start_idx:], "Naive avg": naive[start_idx:],
+         "EW long-only": ew[start_idx:],
          **{n: standalone[start_idx:, i] for i, n in enumerate(names)}}, index=idx)
     if benchmark is not None:
         out.insert(0, benchmark.name, benchmark.reindex(idx).values)
@@ -218,4 +274,6 @@ def run_backtest(returns, cfg, agents, benchmark=None, eligible=None, funding=No
         turnover={k: v / years for k, v in turn.items()},
         sub_capital=sub_cap if cfg.hierarchical else None,
         sub_trust=sub_tr if cfg.hierarchical else None,
+        safety=pd.DataFrame(safety_rows, index=trade_dates),
+        central_weights=pd.DataFrame(central_rows, index=trade_dates, columns=tickers),
     )

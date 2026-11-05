@@ -17,6 +17,9 @@ Per rebalance (every 21 days, using only past returns):
 
 Settings live in `mas_trade/config.py`. Outputs: `results/*.png`, `results/metrics.csv`.
 
+## Safety layer (STL)
+`mas_trade/safety.py` monitors Signal Temporal Logic specs on the system portfolio: rolling drawdown, rolling vol, recovery from a vol breach within R bars, per-stock concentration and consensus disagreement. With `Config(safety=True)` a shield scales the proposed portfolio toward cash before it is traded (ex-ante vol target, drawdown de-risking, per-stock cap), and by default re-checks every day in between (de-risk only), using only information before each check. Design choices and their evidence: `docs/decisions/` and `docs/experiments/`. `run_backtest.py` reports `MAS+STL`, a `Central MV` reference (the centralised optimum of the ADMM problem), `results/stl_summary.csv` and `results/stl_robustness.png`.
+
 ## Hierarchy (level 2)
 With `Config(hierarchical=True)` each strategy's capital `c_i` is split over one subagent per asset, `G[i,k]` (row sums = `c_i`). After the strategy-level reallocation, subagents inside each strategy reallocate by the same rule, `g <- (1-eta_sub) g + eta_sub W^T g`, with `W_kl ~ a_kl s_il` and subagent trust `s_ik = P(bet on k pays off) * P(subagent profitable in the past)`. The side of each position is the sign of the post-consensus weight. `run_backtest.py` reports it as `MAS-H`; `run_adversary_experiment.py --hier` repeats the attack test.
 

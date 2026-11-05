@@ -1,0 +1,34 @@
+# Experiments
+
+Each experiment compares the options of one decision in [../decisions/](../decisions/). Every option is a `Config` flag, so each row is "the same system with one switch changed".
+
+## Rules
+- Write down what each variant does, the exact command, the code version, and the raw CSV location.
+- Report the **dev** period (stocks: 2017–2022) and the **test** period (2023–2025) separately. Decide on dev; use test only as a check. For crypto, the last 12 months stay sealed.
+- Differences of a few hundredths of Sharpe on one sample are noise. Look at what the option is meant to change (e.g. violations, drawdown) and at what it costs (turnover, return, lines of code).
+- End with a recommendation and update the decision's status.
+
+## Index (in the order the experiments were done)
+| # | Date | Question | Decisions | Result |
+|---|---|---|---|---|
+| [001](001-stock-baseline.md) | 2026-10-18 | Does the MAS beat its agents and simple baselines on US stocks? | 0001–0008 | No on return (Sharpe 0.81 vs naive average 0.90); lower drawdown than most agents; capital moves little |
+| [002](002-wmsr-vs-admm.md) | 2026-10-18 | W-MSR vs ADMM consensus mode | 0004, 0005 | ADMM = low-vol mean-variance portfolio (Sharpe 0.33); W-MSR stays default |
+| [003](003-adversary-resilience.md) | 2026-10-18 | Does W-MSR protect against one compromised agent? | 0004, 0006 | Yes: plain 0.46 -> W-MSR 0.74 (clean 0.81); protection is from trimming, not capital |
+| [004](004-hierarchy.md) | 2026-11-01 | Flat vs two-level hierarchy | 0010 | Same Sharpe, lower vol/drawdown/turnover; less resilient under attack |
+| [005](005-v1-crypto-benchmark.md) | 2026-11-01, recorded 2026-11-05 | v1 on crypto perps vs BTC, with and without the shield | 0012–0014, 0026, 0030 | No edge over BTC (dev Sharpe -0.03 to 0.61 vs BTC 0.80–1.05); shield cuts vol to 20–26% and halves drawdown; crypto drawdown limit inconsistent (0031) |
+| [006](006-v2-dev-findings.md) | 2026-11-01 | v2: which agents/combiners have a net edge? | 0015–0020 | Only funding carry (~1.0) and BTC timing (~0.85); no combiner beats inverse-vol; nothing survives deflated Sharpe |
+| [007](007-v2-admm-combiner.md) | 2026-11-05 | v2: does true cost in the ADMM objective cut cost drag? | 0021 | No |
+| [008](008-stl-shield-baseline.md) | 2026-11-05 | Phase 1: STL shield and centralised baseline | 0023–0027 | Violations halved or better, MaxDD -26% -> -21%, Sharpe 0.81 -> 0.79 |
+| [009](009-intra-period-safety-checks.md) | 2026-11-05 | Should the shield also act between rebalances? | 0028 | Yes: fewer and smaller violations, -0.02 dev Sharpe, +15% turnover. **Adopted** (default on) |
+| [010](010-shield-allocation-across-agents.md) | 2026-11-05 | Should the shield cut the riskiest agents instead of all alike? | 0029 | No: no gain without adversary; with one, it spares the adversary. **Code removed** (source in appendix) |
+
+Experiments 001–005 were re-run on 2026-11-05 to recover numbers (the original outputs were not saved). 006–007 quote what was written at the time (v2 is frozen, decision 0022).
+
+## Reproduce
+```
+uv run python run_backtest.py [--mode admm]            # 001, 002, 004, 008
+uv run python run_crypto_benchmark.py --bar 1d|4h|1h  # 005 (after download_crypto_data.py)
+uv run python run_adversary_experiment.py [--hier]    # 003
+uv run python run_safety_experiments.py             # 009 incl. adversary scenario (~15 s); csv in results/experiments/safety/
+uv run python run_safety_experiments.py --exp d028  # 009 only
+```

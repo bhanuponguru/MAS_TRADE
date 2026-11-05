@@ -227,13 +227,19 @@ def build_universe(root=None, top_n=50, window=90, exclude=(), refresh_days=30, 
     listings are excluded. min_age: additionally require this many days of listing history. On each refresh day a symbol ENTERS at rank <= top_n and
     STAYS while rank <= buffer*top_n, so the universe holds top_n..buffer*top_n names and a name
     slipping a few places is not dropped and re-bought. Between refreshes the set only shrinks,
-    when a symbol stops trading. Returns a boolean frame (days x symbols)."""
+    when a symbol stops trading. Returns a boolean frame (days x symbols).
+
+    A day on which NO symbol has a daily bar is a missing dump day (2026-10-28 is one), not a day on
+    which everything stopped trading: it is left out of the volume windows and keeps the previous
+    day's membership (decision 0030). Without this one such day empties the universe for `window` days."""
     root = root or crypto_dir()
     syms = sorted(p.stem for p in (root / "1d").glob("*.parquet"))
     syms = [s for s in syms if s not in set(exclude) and not is_stable_pair(s)]
     qv = _read(root, "1d", syms, "quote_volume")
     qv.index = qv.index.tz_localize(None)
-    qv = qv.reindex(pd.date_range(qv.index.min().normalize(), qv.index.max().normalize(), freq="D"))
+    days = pd.date_range(qv.index.min().normalize(), qv.index.max().normalize(), freq="D")
+    qv = qv.reindex(days)
+    qv = qv.loc[qv.notna().any(axis=1)]                # drop market-wide dump holes (decision 0030)
     full = qv.notna().astype(float).rolling(window).sum().eq(window)
     if min_age:
         full &= qv.notna().cumsum().shift(1).fillna(0).ge(min_age)
@@ -249,7 +255,7 @@ def build_universe(root=None, top_n=50, window=90, exclude=(), refresh_days=30, 
             last = day
         members = {s for s in members if score.iloc[i][s] == score.iloc[i][s]}  # still trading
         out.loc[day, list(members)] = True
-    return out
+    return out.reindex(days).ffill().fillna(False).astype(bool)   # a hole day keeps the day before's members
 
 
 def load_universe(name="broad", root=None):

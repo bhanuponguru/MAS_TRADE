@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from mas_trade import plots
+from mas_trade import plots, safety
 from mas_trade.agents import default_agents
 from mas_trade.backtest import run_backtest
 from mas_trade.config import Config
@@ -21,8 +21,11 @@ cfg = Config(mode=args.mode)
 rets, bench = load_returns(cfg, refresh=args.refresh)
 res = run_backtest(rets, cfg, default_agents(), benchmark=bench)
 hres = run_backtest(rets, replace(cfg, hierarchical=True), default_agents(), benchmark=bench)
+sres = run_backtest(rets, replace(cfg, safety=True), default_agents(), benchmark=bench)
 res.returns["MAS-H"] = hres.returns["MAS"]
 res.turnover["MAS-H"] = hres.turnover["MAS"]
+res.returns["MAS+STL"] = sres.returns["MAS"]
+res.turnover["MAS+STL"] = sres.turnover["MAS"]
 
 out = Path("results")
 out.mkdir(exist_ok=True)
@@ -35,7 +38,29 @@ res.weights.to_csv(out / "system_weights.csv")
 pd.options.display.float_format = "{:.3f}".format
 print(f"Universe: {len(cfg.tickers)} stocks, {res.returns.index[0].date()} -> "
       f"{res.returns.index[-1].date()}, mode={cfg.mode}, F={cfg.F}, K={cfg.K}")
+print(f"safety limits: maxDD {cfg.safety_max_dd:.0%} over {cfg.safety_dd_window} bars, vol {cfg.safety_max_vol:.0%}, "
+      f"recover within {cfg.safety_recover} bars, |w_k| <= {cfg.safety_max_weight:.0%}, "
+      f"daily checks {'on' if cfg.safety_daily else 'off'}")
 print(tab.sort_values("Sharpe", ascending=False))
+
+# ---- safety layer: STL robustness of each system on the realised run
+dis_final = lambda r: pd.Series(r.disagreement[:, -1], index=r.weights.index)
+runs = {"MAS": (res.returns["MAS"], res.weights, dis_final(res)),
+        "MAS+STL": (sres.returns["MAS"], sres.weights, dis_final(sres)),
+        "Central MV": (res.returns["Central MV"], res.central_weights, None)}
+traces, summaries = {}, {}
+for name, (r, w, d) in runs.items():
+    traces[name], summaries[name] = safety.evaluate(r, cfg, w, d)
+stl = pd.concat(summaries, names=["system", "spec"])
+stl.to_csv(out / "stl_summary.csv")
+sres.safety.to_csv(out / "safety_monitor.csv")
+print(f"\nSTL specs (robustness normalised by the limit; violated = share of bars/rebalances):")
+print(stl.unstack("spec")["robustness"].to_string())
+print(stl.unstack("spec")["violated"].to_string())
+iv = sres.safety["intervened"]
+print(f"shield intervened at {iv.sum()} of {len(iv)} rebalances, mean exposure scale {sres.safety['lam'].mean():.2f}")
+plots.stl_robustness(traces, list(iv.index[iv]), out / "stl_robustness.png")
+
 print(f"\nmean spectral gap of W: {res.spectral_gaps.mean():.3f}")
 print("capital share, first -> last day:")
 share = res.capital.div(res.capital.sum(axis=1), axis=0)

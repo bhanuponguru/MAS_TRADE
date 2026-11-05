@@ -164,3 +164,16 @@ def test_median_universe_ignores_one_day_volume_spike(tmp_path):
     med = cd.build_universe(root, top_n=2, window=90, refresh_days=1, buffer=1.0, stat="median")
     mean = cd.build_universe(root, top_n=2, window=90, refresh_days=1, buffer=1.0, stat="mean")
     assert not med["PUMPUSDT"].any() and mean["PUMPUSDT"].any()
+
+
+def test_market_wide_missing_day_does_not_empty_the_universe(tmp_path):
+    root = synthetic_root(tmp_path)
+    base = cd.build_universe(root, top_n=3, window=30, refresh_days=1, stat="median")
+    for p in (root / "1d").glob("*.parquet"):              # the dump lacks one day for every symbol
+        d = pd.read_parquet(p)
+        d.drop(pd.Timestamp("2022-03-20", tz="UTC"), errors="ignore").to_parquet(p)
+    uni = cd.build_universe(root, top_n=3, window=30, refresh_days=1, stat="median")
+    assert uni.index.equals(base.index)                    # calendar keeps the hole day
+    assert uni.loc["2022-03-20":].sum(axis=1).min() >= 3   # no 30-day blackout after the hole
+    assert uni.loc["2022-03-20"].equals(uni.loc["2022-03-19"])   # hole day: previous members
+    assert uni.loc[:"2022-03-19"].equals(base.loc[:"2022-03-19"])  # nothing before the hole changes

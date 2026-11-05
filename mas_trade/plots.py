@@ -89,3 +89,21 @@ def sub_capital_area(sub_capital, tickers, strategy_idx, strategy, path):
     ax.set_title(f"{strategy}: capital run by each asset subagent ($k)")
     ax.legend(loc="upper left", fontsize=6, ncol=5)
     _save(fig, path)
+
+
+def stl_robustness(traces, interventions, path, title="STL robustness (normalised; < 0 = spec violated)"):
+    """traces: dict label -> DataFrame of robustness signals (columns = specs); interventions: dates
+    at which the shield scaled the portfolio down (marked on every panel)."""
+    specs = [c for c in ("phi_dd", "phi_vol", "phi_rec") if any(c in t for t in traces.values())]
+    fig, axes = plt.subplots(len(specs), 1, figsize=(11, 2.6 * len(specs)), sharex=True)
+    for ax, spec in zip(np.atleast_1d(axes), specs):
+        for label, t in traces.items():
+            ax.plot(t.index, t[spec].clip(lower=-2), label=label, lw=1.0)
+        ax.axhline(0, color="k", lw=0.8)
+        for d in interventions:
+            ax.axvline(d, color="tab:red", alpha=0.08, lw=2)
+        ax.set_ylabel(spec)
+        ax.grid(alpha=0.3)
+    np.atleast_1d(axes)[0].set_title(title + " - red bands: shield interventions")
+    np.atleast_1d(axes)[0].legend(fontsize=8)
+    _save(fig, path)

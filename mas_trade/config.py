@@ -48,6 +48,20 @@ class Config:
     F_sub: int = 0             # W-MSR trimming on the subagent trust scores
     sub_graph: str = "complete"  # "complete" or "corr" (link assets with |corr| >= corr_threshold)
     corr_threshold: float = 0.3
+    # safety layer (mas_trade/safety.py): the STL monitor always runs; the shield acts only if safety=True
+    safety: bool = False
+    safety_max_dd: float = 0.15       # phi_dd: drawdown over the last safety_dd_window bars stays above -max_dd
+    safety_dd_window: int = 252
+    safety_max_vol: float = 0.20      # phi_vol: annualised vol (rolling, and ex-ante in the shield) stays below this
+    safety_vol_window: int = 21
+    safety_recover: int = 10          # phi_rec: a vol breach must end within this many bars
+    safety_max_weight: float = 0.20   # phi_conc: |w_k| <= this for every asset (and gross <= 1)
+    safety_max_disagreement: float = 0.35  # phi_cons: final-round consensus disagreement (monitor only)
+    safety_buffer: float = 0.5        # shield starts de-risking when the drawdown margin rho_dd falls below this
+    safety_min_scale: float = 0.2     # least exposure the drawdown shield keeps
+    safety_daily: bool = True         # D028: also check every bar between rebalances (de-risk only)
+    # centralised reference: one node solving the trust-weighted mean-variance problem
+    central_gamma: float = 1.0
     # frictions
     cost_bps: float = 5.0      # per $ traded
     short_fee_bps: float = 0.0  # annual borrow fee on short notional
@@ -61,7 +75,9 @@ class Config:
         cfg = cls(tickers=[], benchmark="BTCUSDT", periods_per_year=365.0 * bpd,
                   lookback=round(look_d * bpd), warmup=round(look_d * bpd),
                   trust_window=round(look_d * bpd), trust_halflife=look_d * bpd / 2,
-                  rebalance_days=max(1, round(reb_h / 24 * bpd)), cost_bps=7.0, start="2020-01-01")
+                  rebalance_days=max(1, round(reb_h / 24 * bpd)), cost_bps=7.0, start="2020-01-01",
+                  safety_dd_window=365 * bpd, safety_vol_window=30 * bpd, safety_recover=14 * bpd,
+                  safety_max_vol=0.40)
         return replace(cfg, **kw)
 
 

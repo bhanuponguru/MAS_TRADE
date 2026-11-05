@@ -151,6 +151,16 @@ def admm_consensus(w0, Sigma, s, gamma, rho, iters):
     return x, np.array([hist[0]] + hist)
 
 
+def central_mv(w0, Sigma, s, gamma):
+    """Centralised reference: one node minimising sum_i s_i f_i(x) with the same local costs as
+    admm_consensus, f_i(x) = -w0_i^T x + gamma/2 x^T Sigma x. Closed form
+    x* = (gamma Sigma)^-1 (sum_i s_i w0_i / sum_i s_i); this is the point the trust-weighted ADMM
+    converges to, so ||x_admm - x*|| measures how far K iterations are from the optimum."""
+    s = np.asarray(s, float)
+    wbar = (s[:, None] * w0).sum(0) / s.sum()
+    return np.linalg.solve(gamma * Sigma, wbar)
+
+
 # ------------------------------------------------------------- robustness
 def is_r_s_robust(adj, r, s=1):
     """Brute-force (r,s)-robustness (Resilient Consensus lecture). For every pair of disjoint
