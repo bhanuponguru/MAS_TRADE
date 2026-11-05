@@ -1,6 +1,9 @@
 """Stage 2: combiners. Each maps the books (information before the rebalance only) to system weights W (K, N)."""
 import numpy as np
 
+from ..consensus import complete_graph
+from . import admm
+from .admm import decentralised_admm, ring_graph
 from .books import ledoit_wolf, scale_book
 from .diagnostics import realised_ic
 from .smooth import cost_aware_smooth
@@ -180,13 +183,18 @@ def mean_variance_book(bs, cfg, k, mu_k, cov=None):
     A = np.column_stack([np.ones(len(ii)), bs.beta[k, ii]])
     x, Y = np.linalg.solve(S, mu_k[ii]), np.linalg.solve(S, A)
     v = (x - Y @ np.linalg.solve(A.T @ Y, A.T @ x)) / cfg.risk_aversion
+    w[ii] = _cap_book(bs, cfg, k, v)
+    return w
+
+
+def _cap_book(bs, cfg, k, v):
+    """Scale a book on the tradable assets down (never up) to the vol target and the gross cap."""
     vol = np.sqrt(v @ bs.Sig[k] @ v)
     target = cfg.target_vol / np.sqrt(cfg.ppy)
     if vol > target:
         v = v * target / vol
     g = np.abs(v).sum()
-    w[ii] = v * cfg.gross_cap / g if g > cfg.gross_cap else v
-    return w
+    return v * cfg.gross_cap / g if g > cfg.gross_cap else v
 
 
 def view_fusion(bs, P, cfg, timing_weight=0.0, cov=None):
@@ -198,6 +206,68 @@ def view_fusion(bs, P, cfg, timing_weight=0.0, cov=None):
     for k in range(bs.k0, len(bs.rebal)):
         W[k] = mean_variance_book(bs, cfg, k, mu[k], cov)
     W = cost_aware_smooth(bs, cfg, W, project=True)
+    if timing_weight:
+        W = W + timing_weight * single_book(bs, cfg, bs.names.index("Timing"))
+    return W
+
+
+# ---------------------------------------------------------------- decentralised consensus ADMM
+def _drift(P, bs, k, w_prev):
+    """Previous target as a fraction of equity at rebalance k, after drifting through the bars since (uses returns
+    before rebalance k only; trading costs are ignored)."""
+    h, eq = w_prev.copy(), 1.0
+    for b in range(bs.rebal[k - 1], bs.rebal[k]):
+        eq += h @ P.R[b] - h @ P.F[b]
+        h = h * (1.0 + P.R[b])
+    return h / eq
+
+
+def admm_consensus(bs, P, cfg, timing_weight=0.0, cost=True, diag=None):
+    """Cross-sectional agents agree on one portfolio by neighbour-only consensus ADMM. Agent i's local objective is
+    its own calibrated view mu_i = sigma_H * IC_i * z_i, scaled by its Fixed-Share Hedge budget (mean 1), against a
+    shared risk term and, when `cost`, the executor's fee + sqrt-impact cost of the net trade from the current
+    holdings. Without `cost` it is C3-style sum-of-views followed by the cost-aware partial adjustment (ablation).
+    diag, if a dict, receives per-rebalance iteration counts and final disagreement."""
+    xs = [i for i, n in enumerate(bs.names) if n != "Timing"]
+    M, K, N = len(xs), len(bs.rebal), bs.Wb.shape[2]
+    ic = causal_ic(bs, P, cfg, xs)
+    pi = M * fixed_share_budgets(book_gains(bs)[:, xs], *hedge_params(cfg, M))
+    adj = complete_graph(M) if cfg.admm_graph == "complete" else ring_graph(M)
+    adj = (adj > 0) & ~np.eye(M, dtype=bool)
+    W, warm = np.zeros((K, N)), {k: np.zeros((M, N)) for k in ("X", "P", "Y", "W")}
+    its, dis = np.zeros(K), np.full(K, np.nan)
+    fee = cfg.fee_bps / 1e4
+    for k in range(bs.k0, K):
+        ii = bs.idx[k]
+        if len(ii) < cfg.min_assets:
+            continue
+        sig_h = bs.sig_d[k, ii] / np.sqrt(cfg.bpd) * np.sqrt(bs.H)
+        mu = sig_h[None, :] * ic[k][:, None] * bs.Z[k][np.ix_(xs, ii)]
+        if not np.any(mu):
+            continue
+        S = bs.H * np.diag(bs.Sig[k]).copy()
+        A = np.column_stack([np.ones(len(ii)), bs.beta[k, ii]])
+        kappa = cfg.impact_k * bs.sig_d[k, ii] * np.sqrt(cfg.aum / np.maximum(bs.adv[k, ii], 1.0))
+        h = _drift(P, bs, k, W[k - 1])[ii] if cost and k > bs.k0 else np.zeros(len(ii))
+        # the vol target and gross cap are part of the problem, not applied afterwards: raise the risk aversion until
+        # the cost-free solution meets them (rescaling a cost-aware solution would re-trade the whole book)
+        v0 = admm._neutral_solve((1.0 / (cfg.risk_aversion * S))[None, :], -(pi[k][:, None] * mu).sum(0)[None, :], A)[0]
+        over = max(np.sqrt(v0 @ bs.Sig[k] @ v0) / (cfg.target_vol / np.sqrt(cfg.ppy)), np.abs(v0).sum() / cfg.gross_cap, 1.0)
+        gamma = cfg.risk_aversion * over
+        scale = gamma * S.mean()
+        X, info = decentralised_admm(pi[k][:, None] * mu, S, A, kappa, fee, h, adj, gamma,
+                                     cfg.admm_cost_mult if cost else 0.0, cfg.admm_rho * scale,
+                                     cfg.admm_sigma * scale, cfg.admm_iters, cfg.admm_tol, cfg.admm_inner,
+                                     {key: v[:, ii] for key, v in warm.items()})
+        for key, v in info["state"].items():
+            warm[key] = np.zeros((M, N))
+            warm[key][:, ii] = v
+        its[k], dis[k] = info["iters"], info["disagreement"]
+        W[k, ii] = _cap_book(bs, cfg, k, X.mean(0))
+    if not cost:
+        W = cost_aware_smooth(bs, cfg, W, project=True)
+    if isinstance(diag, dict):
+        diag.update(iters=its[bs.k0:], disagreement=dis[bs.k0:])
     if timing_weight:
         W = W + timing_weight * single_book(bs, cfg, bs.names.index("Timing"))
     return W

@@ -95,6 +95,14 @@ class V2Config:
     z_shrink: float = 0.2        # shrink R_z toward the identity
     fusion_cov: str = "diag"    # risk model inside the mean-variance book: "diag" (per-asset variance) or "lw" (full Ledoit-Wolf)
     min_adv: float = 1_000_000.0  # tradable only if trailing median daily dollar volume >= this
+    # decentralised consensus ADMM combiner (v2/admm.py); rho, sigma and the iteration budget only set convergence
+    admm_graph: str = "ring"    # agent communication graph: ring | complete
+    admm_rho: float = 1.0       # consensus penalty, in units of mean(gamma * S)
+    admm_sigma: float = 1.0     # penalty of the inner split that carries the non-smooth trading cost
+    admm_iters: int = 1000
+    admm_tol: float = 1e-6      # stop when disagreement and step size are <= tol * max |mean x|
+    admm_inner: int = 3
+    admm_cost_mult: float = 1.0  # trading cost weight against one holding period of expected return
     # schedule
     min_assets: int = 8         # no cross-section below this many tradable assets
     burn_days: float = 90.0     # every combiner starts this long after the first usable rebalance

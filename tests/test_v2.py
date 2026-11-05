@@ -318,3 +318,103 @@ def test_diag_risk_model_book_is_neutral_and_differs_from_full_cov():
     for w in (a, b):
         assert abs(w.sum()) < 1e-9 and abs(bs.beta[k] @ w) < 1e-9
     assert not np.allclose(a, b)
+
+
+# ---------------------------------------------------------------- decentralised consensus ADMM
+from mas_trade.consensus import complete_graph, er_graph  # noqa: E402
+from mas_trade.v2 import admm  # noqa: E402
+
+
+def _admm_problem(seed=0, n=8, M=4):
+    rng = np.random.default_rng(seed)
+    S = rng.uniform(0.5, 2, n) * 1e-2
+    A = np.column_stack([np.ones(n), rng.uniform(0.5, 1.5, n)])
+    mu = rng.normal(0, 0.01, (M, n))
+    kappa = rng.uniform(0.01, 0.05, n)
+    h = rng.normal(0, 0.05, n)
+    return mu, S, A, kappa, h
+
+
+def test_prox_cost_matches_brute_force_and_dead_zone():
+    grid = np.linspace(-1, 1, 400001)
+    for v in (-0.5, -0.0004, 0.0, 0.0003, 0.2, 0.9):
+        t, fee, kap = 0.7, 5e-4, 0.3
+        f = t * (fee * np.abs(grid) + kap * np.abs(grid) ** 1.5) + 0.5 * (grid - v) ** 2
+        assert abs(admm.prox_cost(np.array([v]), t, fee, np.array([kap]))[0] - grid[f.argmin()]) < 1e-4
+    assert admm.prox_cost(np.array([1e-4]), 1.0, 5e-4, np.array([0.1]))[0] == 0.0
+
+
+def test_consensus_without_cost_equals_neutral_mean_variance_solution():
+    mu, S, A, kappa, h = _admm_problem()
+    M, n = mu.shape
+    gamma = 3.0
+    X, info = admm.decentralised_admm(mu, S, A, kappa, 0.0, h, admm.ring_graph(M), gamma, 0.0, gamma * S.mean(),
+                                      gamma * S.mean(), iters=2000, tol=1e-10)
+    Di = 1 / (gamma * S)
+    c = mu.sum(0)
+    nu = np.linalg.solve(A.T @ (Di[:, None] * A), A.T @ (Di * c))
+    closed = Di * (c - A @ nu)
+    assert np.allclose(X, closed[None, :], atol=1e-6)
+
+
+def test_decentralised_equals_central_with_cost_on_every_graph():
+    mu, S, A, kappa, h = _admm_problem(1)
+    M, n = mu.shape
+    gamma, fee = 3.0, 5e-4
+    sc = gamma * S.mean()
+    ref = admm.central_solve(mu.sum(0), S, A, kappa, fee, h, gamma, 1.0, sc)
+    for adj in (admm.ring_graph(M), (complete_graph(M) > 0) & ~np.eye(M, dtype=bool)):
+        X, info = admm.decentralised_admm(mu, S, A, kappa, fee, h, adj, gamma, 1.0, sc, sc, iters=4000, tol=1e-9)
+        assert np.abs(X - X.mean(0)).max() < 1e-6                    # agents agree
+        assert np.allclose(X.mean(0), ref, atol=5e-5)
+    # and the central point is optimal: no neutral perturbation improves the global objective
+    f0 = admm.objective(ref, mu.sum(0), S, kappa, fee, h, gamma, 1.0)
+    rng = np.random.default_rng(0)
+    for _ in range(200):
+        d = rng.normal(0, 1e-3, n)
+        d -= A @ np.linalg.solve(A.T @ A, A.T @ d)
+        assert admm.objective(ref + d, mu.sum(0), S, kappa, fee, h, gamma, 1.0) >= f0 - 1e-12
+
+
+def test_agreed_portfolio_is_neutral_and_cost_weight_shrinks_the_trade():
+    mu, S, A, kappa, h = _admm_problem(2)
+    M = mu.shape[0]
+    sc = 3.0 * S.mean()
+    h = h - A @ np.linalg.solve(A.T @ A, A.T @ h)
+    trades = []
+    for m in (0.0, 1.0, 5.0, 25.0):
+        X, _ = admm.decentralised_admm(mu, S, A, kappa, 5e-4, h, admm.ring_graph(M), 3.0, m, sc, sc, iters=3000, tol=1e-9)
+        assert np.abs(A.T @ X.mean(0)).max() < 1e-8
+        trades.append(np.abs(X.mean(0) - h).sum())
+    assert all(a > b for a, b in zip(trades, trades[1:]))
+
+
+def test_hedge_budget_moves_agreement_toward_that_agent():
+    mu, S, A, kappa, h = _admm_problem(3)
+    M = mu.shape[0]
+    sc = 3.0 * S.mean()
+    z = np.zeros_like(h)
+    base, _ = admm.decentralised_admm(mu, S, A, kappa, 0.0, z, admm.ring_graph(M), 3.0, 0.0, sc, sc, iters=2000, tol=1e-10)
+    pi = np.ones((M, 1))
+    pi[0] = 3.0
+    up, _ = admm.decentralised_admm(pi * mu, S, A, kappa, 0.0, z, admm.ring_graph(M), 3.0, 0.0, sc, sc, iters=2000, tol=1e-10)
+    own = mu[0] - A @ np.linalg.lstsq(A, mu[0], rcond=None)[0]
+    assert up.mean(0) @ own > base.mean(0) @ own
+
+
+def test_admm_combiner_neutral_and_no_lookahead():
+    P = make_panel_synth(n=300)
+    bs1 = build_books(P, CFG, default_v2_agents())
+    P2 = make_panel_synth(n=300)
+    cut = 200
+    P2.R[cut:] = np.random.default_rng(5).normal(0, 0.1, P2.R[cut:].shape)
+    bs2 = build_books(P2, CFG, default_v2_agents())
+    d = {}
+    w1, w2 = cb.admm_consensus(bs1, P, CFG, diag=d), cb.admm_consensus(bs2, P2, CFG)
+    ks = [k for k, t in enumerate(bs1.rebal) if bs1.k0 <= k and bs1.rebal[k + 1 if k + 1 < len(bs1.rebal) else k] <= cut]
+    assert ks and all(np.array_equal(w1[k], w2[k]) for k in ks)
+    for k in range(bs1.k0, len(bs1.rebal)):
+        ii = bs1.idx[k]
+        if np.abs(w1[k]).sum():
+            assert abs(w1[k, ii].sum()) < 1e-6 and abs(bs1.beta[k, ii] @ w1[k, ii]) < 1e-6
+    assert np.nanmax(d["disagreement"]) < 1e-3

@@ -27,5 +27,5 @@ With `Config(hierarchical=True)` each strategy's capital `c_i` is split over one
 
 ## v2: absolute-return benchmark (crypto perps)
 
-`uv run python run_v2_benchmark.py --bar 1d --universe broad --smooth` (also 4h, 1h). Agents: XS momentum, residual reversal, funding carry, size/liquidity (neutral books) and a BTC timing book; combiners: EW, inverse-vol, Fixed-Share Hedge, risk budgeting, Hedge+RB and IC-calibrated view fusion. Dev period only unless `--unseal`.
+`uv run python run_v2_benchmark.py --bar 1d --universe broad --smooth` (also 4h, 1h). Agents: XS momentum, residual reversal, funding carry, size/liquidity (neutral books) and a BTC timing book; combiners: EW, inverse-vol, Fixed-Share Hedge, risk budgeting, Hedge+RB, IC-calibrated view fusion (C3) and a decentralised consensus-ADMM combiner (`mas_trade/v2/admm.py`: neighbour-only iterations on a ring of agents, each with its own calibrated view, Hedge-weighted, against a shared risk term and the true trading cost of the net trade). Dev period only unless `--unseal`.
 Dev-period findings (net of fees, impact and funding): only funding carry (Sharpe ~1.0-1.1 on all three bar sizes) and BTC timing (~0.85, mostly long-BTC beta) show a net edge; reversal has a positive rank-IC but loses money; none of the combiners beats inverse-vol; deflated Sharpe over all logged trials is not significant for any row.

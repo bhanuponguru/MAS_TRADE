@@ -47,6 +47,10 @@ for name, fn in (("EW", cb.equal_weight), ("InvVol", cb.inverse_vol), ("Hedge", 
 runs["C3-xs"] = execute(P, bs, cb.view_fusion(bs, P, cfg), cfg)
 runs["C3+Timing"] = execute(P, bs, cb.view_fusion(bs, P, cfg, timing_weight=0.5), cfg)
 runs["C3-xs (full cov)"] = execute(P, bs, cb.view_fusion(bs, P, cfg, cov="lw"), cfg)
+admm_diag = {}
+runs["ADMM"] = execute(P, bs, cb.admm_consensus(bs, P, cfg, diag=admm_diag), cfg)
+runs["ADMM+Timing"] = execute(P, bs, cb.admm_consensus(bs, P, cfg, timing_weight=0.5), cfg)
+runs["ADMM (no cost)"] = execute(P, bs, cb.admm_consensus(bs, P, cfg, cost=False), cfg)
 
 nets = pd.DataFrame({k: r.net for k, r in runs.items()})
 nets["BTC (context)"] = pd.Series(P.btc, index=P.dates).reindex(nets.index)
@@ -113,4 +117,10 @@ for c in runs:
     sr = r.mean() / r.std()
     dsr[c] = deflated_sharpe(sr, len(tr), float(sr_p.var()), float(r.skew()), float(r.kurt() + 3), len(r))
 print(pd.Series(dsr).to_string())
+it_, dis_ = admm_diag["iters"], admm_diag["disagreement"]
+conv = pd.Series({"rebalances": int((it_ > 0).sum()), "iters mean": it_[it_ > 0].mean(), "iters max": it_.max(),
+                  "hit iter cap": int((it_ >= cfg.admm_iters).sum()), "final disagreement max": np.nanmax(dis_)})
+print("\nADMM convergence (decentralised, graph=%s):" % cfg.admm_graph)
+print(conv.to_string())
+conv.to_csv(out / "admm_convergence.csv")
 print(f"\nwritten to {out}/")
