@@ -18,6 +18,20 @@ class EngineConfig:
     impact_k: float = 1.0       # slippage = k * daily vol * sqrt(trade $ / ADV $)
     aum: float = 1_000_000.0
     holdout_months: int = 12    # the last months are SEALED: reported only with --unseal
+    # windows (days; bars = days * bpd)
+    hist_days: float = 120.0    # history handed to the agents; must cover every window they use
+    cov_days: float = 60.0      # per-coin variance window
+    beta_days: float = 60.0     # BTC beta window
+    adv_days: float = 30.0      # trailing median daily dollar volume
+    burn_days: float = 90.0     # no trading until this long after the first usable rebalance (calibration warm-up)
+    # market and cells (pre-registered, not tuned)
+    kelly: float = 0.5          # Kelly fraction of every agent
+    leverage: float = 3.0       # margin: sum_a |x_ia| <= leverage x wealth
+    gross: float = 3.0          # system gross cap, multiple of equity
+    participation: float = 0.05  # capacity: a position may be at most this share of a coin's daily volume
+    wealth_floor: float = 0.02  # minimum wealth share of an agent (a liveness device)
+    ic_halflife: float = 12.0   # in rebalances: memory of an agent's realised IC
+    ic_prior: float = 10.0      # pseudo-observations of IC = 0 shrinking the estimate toward no skill
 
     @property
     def ppy(self):

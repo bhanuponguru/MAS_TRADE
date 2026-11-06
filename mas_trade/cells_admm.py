@@ -99,19 +99,20 @@ def objective(p, x):
 
 # ------------------------------------------------------------------ pieces of the solver
 def _project_box_l1(t, cap, m):
-    """Projection onto {|y| <= cap, sum|y| <= m}: soft-threshold by theta >= 0, then clip. Returns (y, theta)."""
+    """Projection onto {|y| <= cap, sum|y| <= m}: soft-threshold by theta >= 0, then clip. Returns (y, theta).
+    g(theta) = sum_i min(max(|t_i| - theta, 0), cap_i) is continuous, piecewise linear and decreasing, with breakpoints at
+    |t_i| and |t_i| - cap_i, so theta solving g = m is found exactly by interpolating between the breakpoints."""
     a = np.abs(t)
     c0 = np.minimum(a, cap)
     if c0.sum() <= m:
         return np.sign(t) * c0, 0.0
-    lo, hi = 0.0, float(a.max())
-    for _ in range(60):
-        th = 0.5 * (lo + hi)
-        if np.minimum(np.maximum(a - th, 0.0), cap).sum() > m:
-            lo = th
-        else:
-            hi = th
-    th = hi
+    bp = np.concatenate([a, a - np.where(np.isfinite(cap), cap, 0.0), [0.0]])
+    bp = np.unique(bp[bp >= 0.0])
+    g = np.clip(a[None, :] - bp[:, None], 0.0, cap[None, :]).sum(1)         # g at every breakpoint (decreasing in theta)
+    j = int(np.searchsorted(-g, -m))                                        # first breakpoint with g <= m
+    j = min(max(j, 1), len(bp) - 1)
+    g0, g1, t0, t1 = g[j - 1], g[j], bp[j - 1], bp[j]
+    th = t0 if g0 == g1 else t0 + (g0 - m) / (g0 - g1) * (t1 - t0)
     return np.sign(t) * np.minimum(np.maximum(a - th, 0.0), cap), th
 
 
