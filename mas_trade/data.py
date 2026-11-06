@@ -1,11 +1,16 @@
 """Binance USD-M perpetual data: klines and funding from the public dump bucket, cached as parquet.
 
-Layout (under data/crypto/):  <interval>/<SYMBOL>.parquet   columns close, quote_volume (UTC bar-open index)
+Layout (under data/crypto/):  <interval>/<SYMBOL>.parquet   perp klines: open, high, low, close, volume, quote_volume, trades,
+                                                            taker_buy_volume, taker_buy_quote_volume (UTC bar-open index)
+                              premium/<interval>/<SYMBOL>.parquet   premium index klines (perp vs index; same columns)
+                              spot/<interval>/<SYMBOL>.parquet      spot klines of the matching spot pair (keyed by the PERP symbol)
                               funding/<SYMBOL>.parquet       column rate (UTC settlement time index)
+                              metrics/<SYMBOL>.parquet       hourly snapshots of open interest, long/short and taker ratios
 Delisted symbols are in the bucket too, so the universe is survivorship-free.
 
 Timing convention: a bar is stamped with its OPEN time; return[t] = close[t] / close[t-1] - 1 is earned
 over bar t. Universe membership for bar t is decided from daily volume strictly before t's day.
+Metrics are stamped with the time of the snapshot: a consumer deciding at bar open t must lag them by at least one bar.
 """
 import io
 import json
@@ -101,14 +106,36 @@ def _ms_index(col):
     return pd.to_datetime(v, unit=unit, utc=True)
 
 
+KLINE_COLS = {1: "open", 2: "high", 3: "low", 4: "close", 5: "volume", 7: "quote_volume", 8: "trades",
+              9: "taker_buy_volume", 10: "taker_buy_quote_volume"}
+METRIC_COLS = {"sum_open_interest": "oi", "sum_open_interest_value": "oi_value",
+               "count_toptrader_long_short_ratio": "ls_top_count", "sum_toptrader_long_short_ratio": "ls_top_sum",
+               "count_long_short_ratio": "ls_global", "sum_taker_long_short_vol_ratio": "taker_ratio"}
+# kind -> (bucket prefix, dataset folder, cache subfolder)
+SERIES = {"klines": (UM, "klines", ""), "premium": (UM, "premiumIndexKlines", "premium"), "spot": ("data/spot", "klines", "spot")}
+
+
 def parse_klines(csv_bytes):
     df = pd.read_csv(io.BytesIO(csv_bytes), header=None)
     if not str(df.iloc[0, 0]).lstrip("-").isdigit():  # some files carry a header row
         df = df.iloc[1:]
-    out = pd.DataFrame({"close": pd.to_numeric(df[4]).values, "quote_volume": pd.to_numeric(df[7]).values},
+    out = pd.DataFrame({name: pd.to_numeric(df[i]).values for i, name in KLINE_COLS.items()},
                        index=_ms_index(df[0]).values)
     out.index = pd.DatetimeIndex(out.index, tz="UTC")
     return out
+
+
+def parse_metrics(csv_bytes):
+    """Daily metrics file (5-minute rows) -> the snapshots taken exactly on the hour."""
+    df = pd.read_csv(io.BytesIO(csv_bytes))
+    out = pd.DataFrame({new: pd.to_numeric(df[old]).values for old, new in METRIC_COLS.items()},
+                       index=pd.DatetimeIndex(pd.to_datetime(df["create_time"]), tz="UTC"))
+    return out[out.index.minute == 0]
+
+
+def spot_symbol(perp):
+    """Spot pair of a perpetual: the 1000x / 1000000x / 1M quoting of small-price coins is a perp-only convention."""
+    return re.sub(r"^(1000000|1000|1M)", "", perp)
 
 
 def parse_funding(csv_bytes):
@@ -141,19 +168,45 @@ def _month(key):
     return re.search(r"(\d{4}-\d{2})(?:-\d{2})?\.zip$", key).group(1)
 
 
-def download_klines(symbol, interval, root=None, refresh=False, start="2020-01"):
-    """Monthly dumps, plus daily dumps for months after the last monthly one. Returns True if cached."""
-    path = (root or crypto_dir()) / interval / f"{symbol}.parquet"
+def _day(key):
+    return re.search(r"(\d{4}-\d{2}-\d{2})\.zip$", key).group(1)
+
+
+def download_klines(symbol, interval, root=None, refresh=False, start="2020-01", kind="klines"):
+    """Monthly dumps, plus daily dumps for months after the last monthly one. kind: perp "klines", "premium" index
+    klines or "spot" klines (cached under the PERP symbol). Returns True if cached."""
+    base, name, sub = SERIES[kind]
+    path = (root or crypto_dir()) / sub / interval / f"{symbol}.parquet"
     if path.exists() and not refresh:
         return True
-    mk, _ = _list(f"{UM}/monthly/klines/{symbol}/{interval}/")
+    remote = spot_symbol(symbol) if kind == "spot" else symbol
+    mk, _ = _list(f"{base}/monthly/{name}/{remote}/{interval}/")
     months = sorted(k for k in mk if k.endswith(".zip") and _month(k) >= start)
-    dk, _ = _list(f"{UM}/daily/klines/{symbol}/{interval}/")
+    dk, _ = _list(f"{base}/daily/{name}/{remote}/{interval}/")
     last = _month(months[-1]) if months else start
     days = sorted(k for k in dk if k.endswith(".zip") and _month(k) > last)
     df = _fetch_all([f"{CDN}/{k}" for k in months + days], parse_klines)
     if df is None:
         return False
+    path.parent.mkdir(parents=True, exist_ok=True)
+    df.to_parquet(path)
+    return True
+
+
+def download_metrics(symbol, root=None, refresh=False, start="2020-09-01"):
+    """Daily metrics dumps (open interest, long/short and taker ratios) -> hourly snapshots. Tops up an existing cache
+    with the days after its last row. Returns True if cached."""
+    path = (root or crypto_dir()) / "metrics" / f"{symbol}.parquet"
+    old = pd.read_parquet(path) if path.exists() and not refresh else None
+    if old is not None and len(old):
+        start = str((old.index[-1] + pd.Timedelta(days=1)).date())
+    keys, _ = _list(f"{UM}/daily/metrics/{symbol}/")
+    days = sorted(k for k in keys if k.endswith(".zip") and _day(k) >= start)
+    new = _fetch_all([f"{CDN}/{k}" for k in days], parse_metrics)
+    df = new if old is None else (old if new is None else pd.concat([old, new]))
+    if df is None:
+        return False
+    df = df[~df.index.duplicated(keep="last")].sort_index()
     path.parent.mkdir(parents=True, exist_ok=True)
     df.to_parquet(path)
     return True
@@ -322,4 +375,42 @@ def quality_report(rets, elig, big=0.5):
         rows[s] = {"first": live[0], "last": live[1], "bars": int(span.notna().sum()),
                    "gaps": int(span.isna().sum()), "extreme": int((span.abs() > big).sum()),
                    "in_universe": int(elig[s].sum())}
+    return pd.DataFrame(rows).T
+
+
+# ------------------------------------------------------------------ audits
+def coverage_report(root=None, symbols=None):
+    """Per dataset: how many symbols are cached and when their history starts and ends."""
+    root = root or crypto_dir()
+    layout = {"1d": root / "1d", "4h": root / "4h", "1h": root / "1h", "premium 1h": root / "premium" / "1h",
+              "spot 1h": root / "spot" / "1h", "funding": root / "funding", "metrics": root / "metrics"}
+    rows = {}
+    for name, d in layout.items():
+        firsts, lasts = [], []
+        for p in sorted(d.glob("*.parquet")) if d.exists() else []:
+            if symbols is not None and p.stem not in symbols:
+                continue
+            idx = pd.read_parquet(p).index
+            firsts.append(idx.min())
+            lasts.append(idx.max())
+        if firsts:
+            rows[name] = {"symbols": len(firsts), "first_median": pd.Series(firsts).median().date(),
+                          "first_latest": max(firsts).date(), "last_min": min(lasts).date()}
+        else:
+            rows[name] = {"symbols": 0}
+    return pd.DataFrame(rows).T
+
+
+def funding_interval_report(root=None, symbols=None, tol_s=60):
+    """Spacing of funding events per symbol: share on the 8-hour grid and the shortest spacing seen. Binance shortens
+    the interval at the cap, so any code assuming fixed 8-hour events would be wrong for those symbols."""
+    root = root or crypto_dir()
+    rows = {}
+    for p in sorted((root / "funding").glob("*.parquet")):
+        if symbols is not None and p.stem not in symbols:
+            continue
+        gap = pd.read_parquet(p).index.to_series().diff().dt.total_seconds().dropna() / 3600
+        if len(gap):
+            rows[p.stem] = {"events": len(gap) + 1, "share_8h": float((abs(gap - 8) * 3600 < tol_s).mean()),
+                            "min_gap_h": float(gap.min())}
     return pd.DataFrame(rows).T

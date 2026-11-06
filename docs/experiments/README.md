@@ -24,6 +24,11 @@ Each experiment tests one question behind a decision in [../decisions/](../decis
 | [009](009-intra-period-safety-checks.md) | 2026-11-05 | Should the shield also act between rebalances? | 0028 | Yes: fewer and smaller violations, -0.02 dev Sharpe, +15% turnover. **Adopted** (default on) |
 | [010](010-shield-allocation-across-agents.md) | 2026-11-05 | Should the shield cut the riskiest agents instead of all alike? | 0029 | No: no gain without adversary; with one, it spares the adversary. **Code removed** (source in appendix) |
 
+### New system (branch `engine-rebuild`)
+| # | Date | Question | Decisions | Result |
+|---|---|---|---|---|
+| [011](011-data-audit.md) | 2026-11-06 | What data does Binance provide; is the funding formula right? | 0013, 0037 | Funding formula reproduced (corr 0.995); open-interest data from 2020-09 / 2021-12, daily files only; no liquidation data |
+
 Experiments 001–005 were re-run on 2026-11-05 to recover numbers (the original outputs were not saved). 006–007 quote what was written at the time (v2 is frozen, decision 0022).
 
 ## Reproduce

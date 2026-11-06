@@ -63,6 +63,7 @@ Records 0001-0031 describe the legacy implementation (tag `legacy-v1-v2`). Those
 | [0034](0034-hypothesis-roster-and-timing.md) | One agent per established hypothesis; timing inside the belief; admission gate | Accepted (design) | `agents/` | literature, planned experiments |
 | [0035](0035-drop-wmsr-and-belief-averaging.md) | W-MSR and belief-averaging between agents dropped; model averaging inside agents | Accepted (design) | `agents/averaging.py` | [exp 006](../experiments/006-v2-dev-findings.md) |
 | [0036](0036-risk-model-and-stl-placement.md) | Factor risk model, priced limits inside the ADMM, STL placements | Accepted (design) | `risk.py`, `stl.py` | [exp 008-010](../experiments/) |
+| [0037](0037-extended-data-store.md) | Extended data store: all kline columns, premium index, spot, hourly metrics; audits | Accepted | `data.py`, `download_data.py` | [exp 011](../experiments/011-data-audit.md) |
 
 ## Template
 ```

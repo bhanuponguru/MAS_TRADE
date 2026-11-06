@@ -177,3 +177,48 @@ def test_market_wide_missing_day_does_not_empty_the_universe(tmp_path):
     assert uni.loc["2022-03-20":].sum(axis=1).min() >= 3   # no 30-day blackout after the hole
     assert uni.loc["2022-03-20"].equals(uni.loc["2022-03-19"])   # hole day: previous members
     assert uni.loc[:"2022-03-19"].equals(base.loc[:"2022-03-19"])  # nothing before the hole changes
+
+
+def test_parse_klines_keeps_ohlc_and_taker_columns():
+    raw = b"1704067200000,10,12,9,11,100,1704070799999,1100,7,60,660,0\n"
+    df = cd.parse_klines(raw)
+    assert df.iloc[0].to_dict() == {"open": 10, "high": 12, "low": 9, "close": 11, "volume": 100, "quote_volume": 1100,
+                                    "trades": 7, "taker_buy_volume": 60, "taker_buy_quote_volume": 660}
+
+
+def test_parse_metrics_keeps_only_on_the_hour_snapshots():
+    hdr = ("create_time,symbol,sum_open_interest,sum_open_interest_value,count_toptrader_long_short_ratio,"
+           "sum_toptrader_long_short_ratio,count_long_short_ratio,sum_taker_long_short_vol_ratio\n")
+    rows = "".join(f"2024-06-03 00:{m:02d}:00,SOLUSDT,{100 + m},5,1.5,1.2,2.0,0.9\n" for m in (0, 5, 55)) + \
+           "2024-06-03 01:00:00,SOLUSDT,200,6,1.4,1.1,1.9,1.0\n"
+    m = cd.parse_metrics((hdr + rows).encode())
+    assert list(m.index) == [pd.Timestamp("2024-06-03 00:00", tz="UTC"), pd.Timestamp("2024-06-03 01:00", tz="UTC")]
+    assert list(m["oi"]) == [100.0, 200.0] and set(m.columns) == set(cd.METRIC_COLS.values())
+
+
+def test_spot_symbol_strips_perp_only_multipliers():
+    assert cd.spot_symbol("BTCUSDT") == "BTCUSDT"
+    assert cd.spot_symbol("1000PEPEUSDT") == "PEPEUSDT"
+    assert cd.spot_symbol("1000000MOGUSDT") == "MOGUSDT"
+    assert cd.spot_symbol("1MBABYDOGEUSDT") == "BABYDOGEUSDT"
+
+
+def test_funding_interval_report_flags_shortened_intervals(tmp_path):
+    f = tmp_path / "funding"
+    f.mkdir()
+    ok = pd.date_range("2024-01-01", periods=10, freq="8h", tz="UTC")
+    short = ok[:5].append(pd.date_range(ok[4] + pd.Timedelta(hours=1), periods=5, freq="1h"))
+    pd.DataFrame({"rate": 0.0001}, index=ok).to_parquet(f / "AUSDT.parquet")
+    pd.DataFrame({"rate": 0.0001}, index=short).to_parquet(f / "BUSDT.parquet")
+    r = cd.funding_interval_report(tmp_path)
+    assert r.loc["AUSDT", "share_8h"] == 1.0 and r.loc["BUSDT", "share_8h"] < 1.0 and r.loc["BUSDT", "min_gap_h"] == 1.0
+
+
+def test_coverage_report_counts_symbols_and_dates(tmp_path):
+    d = tmp_path / "1h"
+    d.mkdir()
+    idx = pd.date_range("2022-01-01", periods=5, freq="h", tz="UTC")
+    pd.DataFrame({"close": 1.0}, index=idx).to_parquet(d / "AUSDT.parquet")
+    rep = cd.coverage_report(tmp_path)
+    assert rep.loc["1h", "symbols"] == 1 and rep.loc["funding", "symbols"] == 0
+    assert str(rep.loc["1h", "first_median"]) == "2022-01-01"
