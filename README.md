@@ -1,34 +1,22 @@
 # MAS_Trade
 
-Multi-agent consensus portfolio optimisation, built from the AI3403 MAS course material in `references/`.
+A multi-agent trading system for Binance USD-M perpetual futures, built from the AI3403 Multi-Agent Systems course material in `references/` (consensus, ADMM, distributed learning, temporal logic). Judged in absolute terms (net Sharpe against zero, P&L decomposition), never against holding BTC.
 
+**Status: rebuild in progress** (branch `engine-rebuild`). The data layer, cost model, risk helpers, diagnostics and STL operators are in place; the market, the ADMM cells and the hypothesis agents are specified in [decisions 0033-0036](docs/decisions/) and not yet built.
+
+## Design in one page
+- **Agents = hypotheses.** Each agent runs one established quantitative hypothesis (carry, time-series momentum, short-term reversal, ...) as a full trading engine: its own forecast ("belief": expected net return per coin from a model fitted walk-forward on past data), decay estimate, risk/capacity model and execution.
+- **Level 1, a wealth-staked market.** Agents stake Kelly-sized positions on their own beliefs; the system trades the netted sum. Each agent's wealth compounds with its own results, so capital moves toward the agents whose beliefs pay. Timing (when a hypothesis is likely to under- or over-perform) lives inside the belief.
+- **Level 2, ADMM asset cells.** Inside the market, each (agent, coin) cell manages one coin: capacity, tail risk, cost, execution. All cells are solved jointly by ADMM; the dual variables are prices of dollar neutrality, factor exposures, margin and the net trade per coin.
+- **STL** specifies and monitors: input sanity, cell loss-and-recover, execution deadlines, agent health, and the system limits that enter the ADMM as priced constraints.
+- Research hygiene: point-in-time universe, no lookahead (tested), a sealed final-12-months holdout, an append-only trial log and the deflated Sharpe.
+
+## Run
 ```
 uv sync
-uv run python run_backtest.py              # downloads prices once -> data/prices.csv; results/ (--mode admm for ADMM)
-uv run python run_adversary_experiment.py  # plain consensus vs W-MSR with one compromised agent
 uv run pytest
+uv run python download_data.py [--bars 1d 4h 1h] [--top 50]   # Binance public dumps -> data/crypto/ (gitignored)
 ```
 
-Per rebalance (every 21 days, using only past returns):
-1. Each agent forecasts expected returns `mu`, portfolio `w = mu / sum|mu|` (+ long, - short).
-2. Trust `s_i = Phi(m_i*sqrt(H)/sd_i)`: forecast probability that agent i is profitable, from the EWMA mean/std of its standalone track record.
-3. Consensus matrix `W_ij = a_ij s_j / sum_l a_il s_l`. Agents run K rounds of W-MSR consensus, pinned to their own strategy with weight `b`.
-4. Capital moves between agents as `c <- (1-eta) c + eta W^T c` (conserves total, flows toward high trust), then each agent trades its portfolio with its own capital.
-
-Settings live in `mas_trade/config.py`. Outputs: `results/*.png`, `results/metrics.csv`.
-
-## Safety layer (STL)
-`mas_trade/safety.py` monitors Signal Temporal Logic specs on the system portfolio: rolling drawdown, rolling vol, recovery from a vol breach within R bars, per-stock concentration and consensus disagreement. With `Config(safety=True)` a shield scales the proposed portfolio toward cash before it is traded (ex-ante vol target, drawdown de-risking, per-stock cap), and by default re-checks every day in between (de-risk only), using only information before each check. Design choices and their evidence: `docs/decisions/` and `docs/experiments/`. `run_backtest.py` reports `MAS+STL`, a `Central MV` reference (the centralised optimum of the ADMM problem), `results/stl_summary.csv` and `results/stl_robustness.png`.
-
-## Hierarchy (level 2)
-With `Config(hierarchical=True)` each strategy's capital `c_i` is split over one subagent per asset, `G[i,k]` (row sums = `c_i`). After the strategy-level reallocation, subagents inside each strategy reallocate by the same rule, `g <- (1-eta_sub) g + eta_sub W^T g`, with `W_kl ~ a_kl s_il` and subagent trust `s_ik = P(bet on k pays off) * P(subagent profitable in the past)`. The side of each position is the sign of the post-consensus weight. `run_backtest.py` reports it as `MAS-H`; `run_adversary_experiment.py --hier` repeats the attack test.
-
-## Crypto perps (24/7)
-`uv run python download_crypto_data.py` downloads Binance USD-M perpetual klines (1d/4h/1h) and funding for a point-in-time, survivorship-free top-50 universe (data/crypto/, ~350 MB). `crypto_data.load_panel(bar)` returns returns, eligibility, funding and the BTC benchmark for `run_backtest`; `Config.for_tier("1h")` sets lookbacks/rebalance/annualisation in time units.
-`uv run python run_crypto_benchmark.py --bar 1h --universe broad --eval-from 2022-01-13` runs the benchmark for one bar size (BTC, equal-weight, naive average, each agent, MAS and MAS-H; dev/holdout split, gross vs net, per-year returns, paired bootstrap vs BTC) into `results/crypto/`. `--universe majors` is the stricter top-20, 365-day-history universe.
-
-
-## v2: absolute-return benchmark (crypto perps)
-
-`uv run python run_v2_benchmark.py --bar 1d --universe broad --smooth` (also 4h, 1h). Agents: XS momentum, residual reversal, funding carry, size/liquidity (neutral books) and a BTC timing book; combiners: EW, inverse-vol, Fixed-Share Hedge, risk budgeting, Hedge+RB, IC-calibrated view fusion (C3) and a decentralised consensus-ADMM combiner (`mas_trade/v2/admm.py`: neighbour-only iterations on a ring of agents, each with its own calibrated view, Hedge-weighted, against a shared risk term and the true trading cost of the net trade). Dev period only unless `--unseal`.
-Dev-period findings (net of fees, impact and funding): only funding carry (Sharpe ~1.0-1.1 on all three bar sizes) and BTC timing (~0.85, mostly long-BTC beta) show a net edge; reversal has a positive rank-IC but loses money; none of the combiners beats inverse-vol; deflated Sharpe over all logged trials is not significant for any row.
+## History
+This repository replaced an earlier implementation (a v1 consensus MAS on US stocks and crypto, and a v2 books-and-combiners engine). The experiments and decision records of that work are kept in [docs/experiments/](docs/experiments/) and [docs/decisions/](docs/decisions/); the code is at git tag `legacy-v1-v2` ([decision 0032](docs/decisions/0032-replace-v1-v2.md)).

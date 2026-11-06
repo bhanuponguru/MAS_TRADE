@@ -1,6 +1,6 @@
 # 0027. Centralised baseline = the optimum of the ADMM problem
 
-Status: **Accepted**   Date: 2026-11-05   Where: `consensus.central_mv`, column "Central MV"
+Status: **Superseded by 0032** (was: Accepted)   Date: 2026-11-05   Where: `consensus.central_mv`, column "Central MV"
 
 ## Context
 The proposal promises a centralised portfolio optimiser as a reference for the distributed system.

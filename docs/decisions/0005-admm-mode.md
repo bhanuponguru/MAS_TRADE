@@ -1,6 +1,6 @@
 # 0005. ADMM consensus as an alternative mode
 
-Status: **Accepted**   Date: 2026-10-18   Commit: `b48056d`   Where: `consensus.admm_consensus`; `Config.mode="admm"`, `admm_gamma`, `admm_rho`
+Status: **Superseded by 0032** (was: Accepted)   Date: 2026-10-18   Commit: `b48056d`   Where: `consensus.admm_consensus`; `Config.mode="admm"`, `admm_gamma`, `admm_rho`
 
 ## Context
 The proposal names ADMM as the consensus mechanism.

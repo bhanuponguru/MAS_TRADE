@@ -1,6 +1,6 @@
 # 0031. Crypto drawdown limit consistent with the crypto vol limit
 
-Status: **Proposed** (not applied; needs team sign-off)   Date: 2026-11-05   Flag: `Config.for_tier(..., safety_max_dd=...)`
+Status: **Superseded by 0032** (was: Proposed) (not applied; needs team sign-off)   Date: 2026-11-05   Flag: `Config.for_tier(..., safety_max_dd=...)`
 
 ## Context
 [0026](0026-safety-thresholds.md) set crypto's vol limit to 40% but left the drawdown limit at the stocks' 15%. For stocks the two limits are in proportion (15% drawdown / 20% vol = 0.75). For crypto they are not (15% / 40% < 0.4): a portfolio running exactly at its vol limit would breach the drawdown limit in an ordinary bad month. [Experiment 005](../experiments/005-v1-crypto-benchmark.md) shows the result: the drawdown spec is violated on about 60% of bars even with the shield, which then keeps exposure near its 20% floor.

@@ -1,6 +1,6 @@
 # 0006. Agents own capital; it moves through W transpose
 
-Status: **Accepted**   Date: 2026-10-18   Commit: `b48056d`   Where: `capital.reallocate_capital`; `Config.eta=0.5, c_min=0.02, F_capital=0`
+Status: **Superseded by 0032** (was: Accepted)   Date: 2026-10-18   Commit: `b48056d`   Where: `capital.reallocate_capital`; `Config.eta=0.5, c_min=0.02, F_capital=0`
 
 ## Context
 Consensus on portfolios alone does not reward good agents. Capital allocation is the second channel.

@@ -1,6 +1,8 @@
 # Experiments
 
-Each experiment compares the options of one decision in [../decisions/](../decisions/). Every option is a `Config` flag, so each row is "the same system with one switch changed".
+Each experiment tests one question behind a decision in [../decisions/](../decisions/).
+
+**Two lines of work.** Experiments 001-010 were run with the legacy implementation (v1 consensus MAS and v2 books/combiners) and describe it as it was: the code is at git tag `legacy-v1-v2` and small reference tables are in [data/](data/). They stay as the record of what was tried and why the system was replaced ([decision 0032](../decisions/0032-replace-v1-v2.md)). Experiments 011 onward belong to the new system.
 
 ## Rules
 - Write down what each variant does, the exact command, the code version, and the raw CSV location.
@@ -25,10 +27,5 @@ Each experiment compares the options of one decision in [../decisions/](../decis
 Experiments 001–005 were re-run on 2026-11-05 to recover numbers (the original outputs were not saved). 006–007 quote what was written at the time (v2 is frozen, decision 0022).
 
 ## Reproduce
-```
-uv run python run_backtest.py [--mode admm]            # 001, 002, 004, 008
-uv run python run_crypto_benchmark.py --bar 1d|4h|1h  # 005 (after download_crypto_data.py)
-uv run python run_adversary_experiment.py [--hier]    # 003
-uv run python run_safety_experiments.py             # 009 incl. adversary scenario (~15 s); csv in results/experiments/safety/
-uv run python run_safety_experiments.py --exp d028  # 009 only
-```
+Legacy experiments (001-010): `git worktree add ../mas_trade_legacy legacy-v1-v2` and run the commands in that worktree's README.md. The tables in [data/](data/) are the saved outputs (dev period only; sealed-holdout tables were not copied).
+New experiments (011+): commands and committed result CSVs are given in each write-up.

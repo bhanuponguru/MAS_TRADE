@@ -4,7 +4,7 @@ import zipfile
 import numpy as np
 import pandas as pd
 
-from mas_trade import crypto_data as cd
+from mas_trade import data as cd
 
 KL_HEADER = "open_time,open,high,low,close,volume,close_time,quote_volume,count,tb,tbq,ignore\n"
 

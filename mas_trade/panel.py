@@ -1,10 +1,10 @@
-"""Market panel for the v2 engine: returns, eligibility, funding, dollar volume, BTC on one bar grid."""
+"""Market panel: returns, eligibility, funding, dollar volume, BTC on one bar grid."""
 from dataclasses import dataclass
 
 import numpy as np
 import pandas as pd
 
-from .. import crypto_data as cd
+from . import data as cd
 
 
 @dataclass

@@ -1,6 +1,6 @@
 # 0022. Build the proposal's system on the v1 consensus engine; freeze v2
 
-Status: **Accepted** (2026-11-05, approved by the user)   Date: 2026-11-05
+Status: **Superseded by 0032** (was: Accepted) (2026-11-05, approved by the user)   Date: 2026-11-05
 
 ## Context
 The repo has two engines. v1 (`mas_trade/backtest.py`) has the parts the proposal is about: agent consensus (W-MSR, ADMM), trust, capital flow between agents, adversaries, communication graphs. v2 (`mas_trade/v2/`) is an absolute-return crypto engine (books, combiners, impact costs) that goes beyond the proposal. Building the safety layer, experiments and dashboard twice is not affordable.

@@ -1,6 +1,6 @@
 # 0025. Shield mechanism: scale the portfolio toward cash
 
-Status: **Accepted**   Date: 2026-11-05   Where: `safety.supervise`
+Status: **Superseded by 0032** (was: Accepted)   Date: 2026-11-05   Where: `safety.supervise`
 
 ## Context
 When a spec is about to be violated, the supervisor must change the portfolio. It may only use information from before the rebalance (no-lookahead is a tested invariant).

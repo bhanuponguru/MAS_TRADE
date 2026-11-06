@@ -1,6 +1,6 @@
 # 0004. Consensus: trust-weighted W-MSR with pinning
 
-Status: **Accepted**   Date: 2026-10-18   Commit: `b48056d`   Where: `consensus.trust_matrix`, `run_consensus`; `Config.K=10, F=1, pin=0.3, graph`
+Status: **Superseded by 0032** (was: Accepted)   Date: 2026-10-18   Commit: `b48056d`   Where: `consensus.trust_matrix`, `run_consensus`; `Config.K=10, F=1, pin=0.3, graph`
 
 ## Context
 Agents must move toward a shared allocation over a communication graph, and some agents may be faulty or malicious.

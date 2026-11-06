@@ -1,6 +1,6 @@
 """Download Binance USD-M perp data into data/crypto/ (parquet cache).
 
-python download_crypto_data.py [--bars 1d 4h 1h] [--top 50] [--refresh] [--workers 24]
+python download_data.py [--bars 1d 4h 1h] [--top 50] [--refresh] [--workers 24]
 
 1. daily klines for every USDT perp ever listed (incl. delisted), to rank by dollar volume
 2. point-in-time top-N universe -> data/crypto/universe_<N>.csv
@@ -9,7 +9,7 @@ python download_crypto_data.py [--bars 1d 4h 1h] [--top 50] [--refresh] [--worke
 import argparse
 import sys
 
-from mas_trade import crypto_data as cd
+from mas_trade import data as cd
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--bars", nargs="+", default=["1d", "4h", "1h"], choices=list(cd.FREQ))

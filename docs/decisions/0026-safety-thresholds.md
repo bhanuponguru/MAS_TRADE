@@ -1,6 +1,6 @@
 # 0026. Safety limits
 
-Status: **Accepted** (2026-11-05, approved by the user)   Flags: `Config.safety_*`
+Status: **Superseded by 0036** (was: Accepted) (2026-11-05, approved by the user)   Flags: `Config.safety_*`
 
 ## Context
 Every spec has a limit. Results, and how often the shield acts, depend strongly on the limits, and choosing them by looking at performance is a form of overfitting. So each limit is justified by a risk-mandate argument, not by a backtest.

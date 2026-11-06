@@ -1,6 +1,6 @@
 # 0001. Start on 20 US large caps, daily data from yfinance
 
-Status: **Accepted**   Date: 2026-10-18   Commit: `b48056d`   Where: `config.TICKERS`, `mas_trade/data.py`
+Status: **Superseded by 0032** (was: Accepted)   Date: 2026-10-18   Commit: `b48056d`   Where: `config.TICKERS`, `mas_trade/data.py`
 
 ## Context
 The proposal asks for a controlled historical simulation first.

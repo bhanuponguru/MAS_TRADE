@@ -1,6 +1,6 @@
 # 0002. Six simple forecasting agents with long-short portfolios
 
-Status: **Accepted**   Date: 2026-10-18   Commit: `b48056d`   Where: `mas_trade/agents.py`
+Status: **Superseded by 0032** (was: Accepted)   Date: 2026-10-18   Commit: `b48056d`   Where: `mas_trade/agents.py`
 
 ## Context
 The proposal wants autonomous agents with different strategies, so that coordination is actually needed.

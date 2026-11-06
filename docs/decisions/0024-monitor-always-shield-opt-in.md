@@ -1,6 +1,6 @@
 # 0024. The STL monitor always runs; the shield is opt-in
 
-Status: **Accepted**   Date: 2026-11-05   Flag: `Config.safety` (default `False`)
+Status: **Superseded by 0032** (was: Accepted)   Date: 2026-11-05   Flag: `Config.safety` (default `False`)
 
 ## Context
 The proposal separates "monitoring safety" from "acting on it". We also need every older result to stay reproducible.

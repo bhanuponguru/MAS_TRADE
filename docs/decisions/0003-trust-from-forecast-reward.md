@@ -1,6 +1,6 @@
 # 0003. Trust = forecast probability that an agent is profitable
 
-Status: **Accepted**   Date: 2026-10-18   Commit: `b48056d`   Where: `forecasting.trust_scores`; `Config.trust_window`, `trust_halflife`, `trust_power`
+Status: **Superseded by 0032** (was: Accepted)   Date: 2026-10-18   Commit: `b48056d`   Where: `forecasting.trust_scores`; `Config.trust_window`, `trust_halflife`, `trust_power`
 
 ## Context
 Consensus and capital flows need a weight per agent that reflects how much to listen to it.

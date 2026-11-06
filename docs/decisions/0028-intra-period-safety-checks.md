@@ -1,6 +1,6 @@
 # 0028. Shield checks every bar between rebalances (de-risk only)
 
-Status: **Accepted** (2026-11-05, approved by the user on the experiment's recommendation)   Date: 2026-11-05   Flag: `Config.safety_daily` (default **`True`** since acceptance; only matters when `safety=True`)
+Status: **Superseded by 0032** (was: Accepted) (2026-11-05, approved by the user on the experiment's recommendation)   Date: 2026-11-05   Flag: `Config.safety_daily` (default **`True`** since acceptance; only matters when `safety=True`)
 
 ## Context
 With the shield acting only at rebalances (every 21 days), a crash that starts mid-period runs unchecked: COVID 2020 and April 2025 still breached the vol and drawdown specs.

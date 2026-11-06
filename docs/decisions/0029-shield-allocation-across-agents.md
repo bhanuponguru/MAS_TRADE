@@ -1,6 +1,6 @@
 # 0029. How the shield's cut is split across agents
 
-Status: **Accepted** (2026-11-05, approved by the user on the experiment's recommendation): `uniform`; `risk` rejected and its code removed   Date: 2026-11-05   Flag: none (the `safety_alloc` flag was removed with the `risk` code)
+Status: **Superseded by 0032** (was: Accepted) (2026-11-05, approved by the user on the experiment's recommendation): `uniform`; `risk` rejected and its code removed   Date: 2026-11-05   Flag: none (the `safety_alloc` flag was removed with the `risk` code)
 
 ## Context
 When the shield cuts total exposure, it can scale every agent alike, or take the cut from specific agents. Taking it from "the agents causing the problem" would tie the safety layer to the multi-agent layer (proposal Week 7).
