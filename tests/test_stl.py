@@ -43,3 +43,47 @@ def test_rolling_drawdown_and_vol():
     assert np.all(dd <= 0)
     v = stl.rolling_vol(np.random.default_rng(0).normal(0, 0.01, 200), 20, 365.0)
     assert np.isnan(v[0]) and np.all(v[19:] > 0)
+
+
+def test_s1_deadline_and_recovery_specs_match_brute_force():
+    rng = np.random.default_rng(4)
+    gap = np.abs(rng.normal(0, 1, 60))
+    tol, n = 0.5, 4
+    rho = stl.reaches_within(gap, tol, n)
+    brute = [max((tol - gap[u]) / tol for u in range(t, min(t + n, len(gap) - 1) + 1)) for t in range(len(gap))]
+    assert np.allclose(rho, brute)
+    assert (rho[gap < tol] > 0).all()                      # already at target: satisfied
+    ok = stl.le(np.array([0.1, 0.3, 0.3, 0.3, 0.1, 0.3]), 0.2)
+    assert np.allclose(stl.recovery(ok, 2), stl.implies(stl.not_(ok), stl.eventually(ok, 0, 2)))
+
+
+def test_s2_belief_sanity_zeroes_corrupt_beliefs_and_leaves_honest_ones():
+    rng = np.random.default_rng(5)
+    history = rng.normal(0, 0.004, (300, 50))
+    bound = stl.belief_bound(history)
+    honest = rng.normal(0, 0.004, 50)
+    b, share = stl.sanitize_belief(honest, bound)
+    assert np.array_equal(b, honest) and share == 0.0
+    for corrupt in (np.full(50, np.nan), honest * 100, np.full(50, np.inf)):
+        b, share = stl.sanitize_belief(corrupt, bound)
+        assert share > 0.9 and (b[np.abs(corrupt) > bound] == 0).all() and np.isfinite(b).all()
+    mixed = honest.copy()
+    mixed[7] = np.nan
+    b, share = stl.sanitize_belief(mixed, bound)
+    assert b[7] == 0 and np.array_equal(np.delete(b, 7), np.delete(honest, 7)) and np.isclose(share, 1 / 50)
+
+
+def test_s2_kelly_scale_is_monotone_in_the_spec_margin():
+    m = np.linspace(-1, 2, 61)
+    s = stl.kelly_scale(m)
+    assert (np.diff(s) >= -1e-12).all() and s.min() == 0.2 and s.max() == 1.0
+    assert stl.kelly_scale(0.5) == 1.0 and stl.kelly_scale(0.0) == 0.2
+
+
+def test_calibration_slope_is_one_when_calibrated_and_falls_with_over_confidence():
+    rng = np.random.default_rng(6)
+    belief = rng.normal(0, 0.003, 20000)
+    r = belief + rng.normal(0, 0.06, 20000)               # E[r | belief] = belief
+    assert abs(stl.calibration_slope(belief, r) - 1.0) < 0.4
+    assert stl.calibration_slope(4 * belief, r) < 0.6
+    assert stl.ge(stl.calibration_slope(4 * belief, r), 0.5) < stl.ge(stl.calibration_slope(belief, r), 0.5)

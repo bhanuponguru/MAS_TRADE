@@ -56,3 +56,17 @@ def kelly_growth(world, rho_true, rho_claim, f, kappa=1.0):
     E[return] = f kappa rho_claim rho_true q, Var = (f kappa rho_claim)^2 q."""
     q = world.N * world.sigma_alpha ** 2 / world.sigma_eps ** 2
     return f * kappa * rho_claim * rho_true * q - 0.5 * (f * kappa * rho_claim) ** 2 * q
+
+
+def make_regime_signals(world, rho_on, rho_off, p_stay=0.97, z_noise=0.5, seed=0):
+    """Signals of an agent whose skill depends on a hidden two-state Markov regime. Returns (signal (T, N), z (T,), rho (T,)):
+    z is an observable noisy indicator of the state, known at the time the period starts. E[alpha | signal] = rho_t x signal."""
+    rng = np.random.default_rng(seed)
+    state = np.zeros(world.T, int)
+    state[0] = rng.random() < 0.5
+    for t in range(1, world.T):
+        state[t] = state[t - 1] if rng.random() < p_stay else 1 - state[t - 1]
+    rho = np.where(state == 1, rho_on, rho_off)
+    signal = rho[:, None] * world.alpha + np.sqrt(1 - rho[:, None] ** 2) * world.sigma_alpha * rng.normal(size=world.alpha.shape)
+    z = state + rng.normal(0, z_noise, world.T)
+    return signal, z, rho

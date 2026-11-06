@@ -88,3 +88,45 @@ def rolling_drawdown(r, window):
 
 def rolling_vol(r, window, ppy):
     return (pd.Series(r).rolling(window, min_periods=2).std() * np.sqrt(ppy)).values
+
+
+# ------------------------------------------------------------ specs used by the agents and the market
+def recovery(rho_ok, n):
+    """G (not ok -> F[0,n] ok): a breach of the 'ok' predicate (margin rho_ok) must end within n bars."""
+    return implies(not_(rho_ok), eventually(rho_ok, 0, n))
+
+
+def reaches_within(gap, tol, n):
+    """F[0,n] (gap <= tol): at every bar, the robustness of 'the target is reached within n bars'."""
+    return eventually(le(gap, tol), 0, n)
+
+
+def belief_bound(history, k=6.0):
+    """Sanity bound for a belief: k robust standard deviations (median absolute value / 0.6745) of past beliefs."""
+    h = np.abs(np.asarray(history, float))
+    return k * float(np.nanmedian(h)) / 0.6745
+
+
+def belief_margin(b, bound):
+    """Margin of 'every |belief| <= bound' per coin; non-finite beliefs get -inf."""
+    m = le(np.abs(np.asarray(b, float)), bound)
+    return np.where(np.isfinite(m), m, -np.inf)
+
+
+def sanitize_belief(b, bound):
+    """Zero every coin whose belief violates the sanity spec (NaN, inf or beyond the bound); honest beliefs are untouched.
+    Returns (belief, share of coins zeroed)."""
+    bad = belief_margin(b, bound) < 0
+    return np.where(bad, 0.0, b), float(bad.mean())
+
+
+def kelly_scale(margin, buffer=0.5, min_scale=0.2):
+    """Multiplier of an agent's Kelly fraction from a spec margin: 1 when at least `buffer` of the limit is left, falling
+    linearly to min_scale as the margin reaches 0 (de-risk before the limit, not after)."""
+    return np.clip(min_scale + (1.0 - min_scale) * np.asarray(margin, float) / buffer, min_scale, 1.0)
+
+
+def calibration_slope(beliefs, returns):
+    """Slope of realised returns on the beliefs held before them (1 = calibrated, below 1 = over-confident)."""
+    b, r = np.ravel(beliefs), np.ravel(returns)
+    return float(b @ r / max(b @ b, 1e-300))

@@ -51,6 +51,32 @@ The mechanisms (prices, wealth selection, netting, fusion, timing) must be valid
 - **L1-2 with a 2% floor FAILS** (strict xfail in the tests): selection against over-confidence is not reliable (the calibrated agent has more final wealth in 6 of 20 seeds; the over-confident agent's mean share is below 0.5 in 14 of the 15 seeds that are not wiped out). See "Changes to criteria" for the diagnosis.
 - **Finding: an unlimited over-confident agent can ruin the system.** At an effective Kelly fraction of 2 (belief scaled by 4 at f = 0.5) the per-period return sd is about 0.39, and in 5 of 20 seeds (with floor) the whole system was wiped out in one period. Selection is too slow to stop this; the defence is risk limits (margin and gross cap in the joint problem, tested in L2) and the agent's calibration spec, not wealth dynamics alone.
 
+**Model averaging** (`tests/test_averaging.py`)
+- A1 passes: with member errors differing 4x (variances 1,1,4,4,4), stacking weights (shrink 0.5) give a fused belief correlated 0.849 with the true alpha against 0.814 for equal weights (+4.3%, mean of 20 seeds); with equal members 0.854 against 0.858 (-0.4%, within the 2% bound). Regression (stacking) weights are closer to the optimal precision weights than inverse-MSE weights: the common idiosyncratic noise (6% per coin) swamps the members' error differences in an MSE comparison.
+- A2 restated (see changes), passes: with the sanity guard on, the fused belief equals the honest members' average exactly; trimmed mean alone changes it by about 13%; no guard: more than 100%. Engineering finding: a corrupt member is corrupt everywhere, including on coins where its (e.g. 100x) values happen to look plausible, so the guard excludes a member entirely when more than 5% of its coins violate the bound.
+
+**STL** (`tests/test_stl.py`)
+- S1 passes: the recovery and deadline ("target reached within N bars") specs match brute force.
+- S2 passes: the belief-sanity spec zeroes NaN, inf and 100x beliefs and leaves honest ones untouched; the Kelly multiplier is monotone in the spec margin (1 at margin 0.5, 0.2 at margin 0).
+- Calibration spec (agent level), an addition prompted by the L1-2 finding: when the slope of past returns on an agent's own beliefs falls below 0.5 its Kelly fraction is scaled down by the margin. In the over-confident scenario it removes system ruin entirely (0 of 20 seeds, with and without floor, against 2 and 5 of 20 without it). It does not restore selection: the guarded over-confident agent bets about as much as the calibrated one, so their wealth is similar (10 of 20 seeds each way); it is a risk control, not a selector.
+
+**Timing** (`tests/test_timing.py`, 1,000 periods, 20 seeds, skill 0.3 in the on-state and 0 in the off-state, regimes of about 33 periods, noisy observable state)
+- T1 passes: timed minus untimed mean period return +0.00203 (90% bootstrap interval 0.00092 to 0.00329; the timed agent wins in 14 of 20 seeds).
+- T2 passes: with constant skill the timed agent earns 0.00375 per period against 0.00398 untimed (-5.9%, inside the 10% bound): the shrinkage cost of timing.
+
+## Summary
+| Criterion | Status |
+|---|---|
+| L2-1 to L2-5 | pass |
+| L1-1, L1-3, L1-4 | pass |
+| L1-2 without floor | pass (18 of 20; 2 wiped out) |
+| **L1-2 with a 2% floor** | **fail** (14 of 20; 5 more wiped out); strict xfail |
+| A1 | pass |
+| A2 | restated, pass |
+| S1, S2 | pass |
+| T1, T2 | pass |
+
 ## Changes to criteria
 - 2026-11-06, L2-4: the criterion was first written as the ratio of the best to the worst coin's position. At a tight margin the worst coin's position reaches exactly zero (soft-threshold), making the ratio infinite and the test ill-posed. Replaced by the best coin's share of capital, which states the same thing. Found while writing the test, before any result was read.
 - 2026-11-06, L1-2, after a FAILED run (disclosed): with the 2% wealth floor the calibrated agent had more final wealth in only 6 of 20 seeds at T_oc = 1,363 periods. Diagnosis (single-agent run, 6 seeds x 3,000 periods): the calibrated agent's realised log-growth was 0.0141 per period (theory 0.0141), the over-confident one's was -0.0258 (the continuous approximation says 0; discrete compounding makes it negative) with ruin (a period return of -169%) in all 6 runs. So selection works; the floor is what blunts it: it re-seeds a ruined agent with 2% of total wealth and acts as a rebalancing rule, so the over-confident agent keeps a persistent 14-41% mean share and final wealth ordering is close to a coin flip. Two changes follow. (1) Limited liability was added to the market (a loss beyond an account's wealth is borne by the others), which the first version lacked (wealth went negative). (2) L1-2 is split: without a floor, the calibrated agent has more final wealth in at least 90% of seeds; with the 2% floor, the over-confident agent's mean share over the second half is below 0.5 in at least 90% of seeds. The floor's blunting of selection is a finding about decision 0033 and is recorded there.
+- 2026-11-06, A2, after a FAILED run (disclosed): "an injected exploding member changes the fused belief by less than 10%" cannot be met by any guard in the simulated noise setting (member noise sd 0.003 against a common signal sd 0.005), because the guarded fusion of 7 honest members differs from the clean fusion of all 8 by about 13% on its own (information lost by dropping a member, not an effect of the fault). The sanity guard (a spec on belief magnitude) and the trimmed mean (trim = 1) both measured 13%. A2 is restated: with the guard on, the fused belief equals the average of the honest members exactly (error below 1e-12); the trimmed mean alone changes the fused belief by about 13% relative to its clean value (reported, a finding: trimming alone is a blunter guard than the sanity spec); without a guard the change exceeds 100%.

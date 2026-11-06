@@ -1,6 +1,6 @@
 # 0035. W-MSR and belief-averaging between agents dropped; model averaging inside agents
 
-Status: **Accepted (design)**   Date: 2026-11-06   Where: `agents/averaging.py` (not yet built)
+Status: **Accepted (design; validated on simulated data, [exp 012](../experiments/012-mas-levels-on-simulated-data.md))**   Date: 2026-11-06   Where: `agents/averaging.py` (not yet built)
 
 ## Context
 Options considered for the consensus content: (a) W-MSR / DeGroot consensus on beliefs between agents; (b) estimator sub-agents fused by consensus inside an agent; (c) plain model averaging inside an agent; (d) nothing.
@@ -11,6 +11,9 @@ Options considered for the consensus content: (a) W-MSR / DeGroot consensus on b
 - W-MSR protects against faulty or malicious values in decentralised averaging. Our agents are our own code on a central machine; a trimmed mean, median or belief-magnitude STL spec gives the same protection. Trimming across different hypotheses can remove a legitimate specialist.
 - Model variants inside an agent (model class, horizon, refit window, seeds) are averaged, error-weighted and shrunk toward equal weights; forecast error is measured over about 60 coins per period, so these weights are far less noisy than P&L-based ones.
 - The effective number of independent voters matters more than the voter count (our four v2 agents were nearly uncorrelated, effective number 3.5 of 4, yet failed because each had about zero net skill).
+
+## Findings from simulation (exp 012)
+Stacking weights (non-negative ridge regression of returns on member beliefs, shrunk toward equal) beat equal weights by 4% in correlation with the true alpha when member errors differ 4x and cost 0.4% when they are equal; they are closer to the optimum than inverse-MSE weights because realised returns are too noisy for MSE comparisons. A trimmed mean alone limits an exploding member to a 13% change; the sanity spec excludes it exactly (a corrupt member is excluded entirely when more than 5% of its coins violate the bound).
 
 ## Consequences
 The W-MSR resilience demonstration exists only at the tag (experiment 003).

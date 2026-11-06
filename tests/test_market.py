@@ -119,3 +119,12 @@ def test_limited_liability_covers_a_negative_account_from_the_others():
 def test_wealth_floor_is_a_transfer_that_keeps_the_total():
     w = apply_floor(np.array([0.9, 0.09, 0.01]), 0.05)
     assert np.isclose(w.sum(), 1.0) and w.min() >= 0.05 - 1e-12 and np.isclose(w[2], 0.05)
+
+
+def test_calibration_spec_removes_system_ruin_from_an_over_confident_agent():
+    T = _l1_2_setup()
+    ruined = 0
+    for floor in (0.0, 0.02):
+        cfg = MarketConfig(kelly=np.full(2, F_KELLY), floor=floor, calibration_floor=0.5)
+        ruined += sum(_pair(seed, T, cfg).wealth[-1].sum() <= 0 for seed in range(10))
+    assert ruined == 0                                   # without the spec 2 of 20 (no floor) and 5 of 20 (floor) seeds are wiped out

@@ -28,7 +28,7 @@ Each experiment tests one question behind a decision in [../decisions/](../decis
 | # | Date | Question | Decisions | Result |
 |---|---|---|---|---|
 | [011](011-data-audit.md) | 2026-11-06 | What data does Binance provide; is the funding formula right? | 0013, 0037 | Funding formula reproduced (corr 0.995); open-interest data from 2020-09 / 2021-12, daily files only; no liquidation data |
-| [012](012-mas-levels-on-simulated-data.md) | 2026-11-06 | Do both MAS levels behave as designed on simulated data? | 0033, 0035, 0036 | criteria written, in progress |
+| [012](012-mas-levels-on-simulated-data.md) | 2026-11-06 | Do both MAS levels behave as designed on simulated data? | 0033, 0035, 0036 | Phase 1 done: all criteria pass except L1-2 with a wealth floor (selection against over-confidence is unreliable and an unlimited over-confident agent can wipe out the system); A2 restated |
 
 Experiments 001–005 were re-run on 2026-11-05 to recover numbers (the original outputs were not saved). 006–007 quote what was written at the time (v2 is frozen, decision 0022).
 

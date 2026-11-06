@@ -14,6 +14,7 @@ from dataclasses import dataclass
 import numpy as np
 
 from .attribution import allocate_cost
+from . import stl
 from .cells_admm import CellProblem, solve_cells, solve_uncoupled
 
 
@@ -29,6 +30,9 @@ class MarketConfig:
     cap: float = np.inf                # per-coin capacity as a multiple of wealth
     gross: float = np.inf              # system gross cap as a multiple of total equity
     beta_band: float = np.inf          # |beta'X| <= beta_band x total equity
+    calibration_floor: float = None    # agent spec: slope of returns on its beliefs must stay above this; scales its Kelly fraction
+    calibration_window: int = 250      # periods of past beliefs and returns behind the slope
+    calibration_min_obs: int = 2000    # (period, coin) observations needed before the spec acts
 
 
 @dataclass
@@ -72,6 +76,18 @@ def apply_floor(w, floor):
     return out
 
 
+def _calibration_scale(beliefs, R, t, cfg):
+    """Per-agent Kelly multiplier from the calibration spec (slope of past returns on the agent's past beliefs >= floor)."""
+    M = beliefs.shape[0]
+    if cfg.calibration_floor is None:
+        return np.ones(M)
+    lo = max(0, t - cfg.calibration_window)
+    if (t - lo) * R.shape[1] < cfg.calibration_min_obs:
+        return np.ones(M)
+    slopes = np.array([stl.calibration_slope(beliefs[i, lo:t], R[lo:t]) for i in range(M)])
+    return stl.kelly_scale(stl.ge(slopes, cfg.calibration_floor))
+
+
 def run_market(R, beliefs, d, B, F, cfg, w0=None, funding=None):
     """Simulate the market. R (T, N) returns, beliefs (M, T, N); d, B, F the risk model (see CellProblem)."""
     M, T, N = beliefs.shape
@@ -90,7 +106,8 @@ def run_market(R, beliefs, d, B, F, cfg, w0=None, funding=None):
             equity[t + 1] = equity[t]
             continue
         W = np.maximum(wealth[t], 1e-9 * wealth[t].sum())          # an extinct agent stakes (almost) nothing
-        p = CellProblem(mu=beliefs[:, t], gamma=1.0 / (cfg.kelly * W), d=d, H=held.sum(0), fee=cfg.fee, kappa=kappa,
+        kelly = cfg.kelly * _calibration_scale(beliefs, R, t, cfg)
+        p = CellProblem(mu=beliefs[:, t], gamma=1.0 / (kelly * W), d=d, H=held.sum(0), fee=cfg.fee, kappa=kappa,
                         B=B, F=F, A=A)
         if cfg.coupled:
             p.cap = np.full((M, N), cfg.cap) * W[:, None] if np.isfinite(cfg.cap) else p.cap

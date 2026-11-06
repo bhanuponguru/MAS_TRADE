@@ -1,6 +1,6 @@
 # 0036. Factor risk model, priced limits inside the ADMM, STL placements
 
-Status: **Accepted (design)**   Date: 2026-11-06   Where: `risk.py`, `stl.py`, `cells_admm.py` (not yet built)
+Status: **Accepted (design; STL specs and priced limits validated on simulated data, [exp 012](../experiments/012-mas-levels-on-simulated-data.md))**   Date: 2026-11-06   Where: `risk.py`, `stl.py`, `cells_admm.py` (not yet built)
 
 ## Context
 The v1 shield scaled the finished portfolio toward cash after the fact ([0025](0025-shield-mechanism.md)); rescaling a cost-aware solution re-trades the whole book (seen in exp 007). Its limits were justified by a risk mandate ([0026](0026-safety-thresholds.md)), which is the part worth keeping.

@@ -11,6 +11,9 @@ The v2 agents were ad-hoc signals. Searches found replicated crypto evidence in 
 - Timing (pull / push capital) lives inside the belief: state-dependent skill IC(state) = IC0 + theta.s plus a conditional variance forecast scaling the Kelly stake; wealth dynamics are the slow backup. Each agent runs timed and untimed; timing is kept only if it helps. Timing is itself a trial.
 - Each hypothesis and each timing variant counts as one trial for the deflated Sharpe; seeds and model variants do not.
 
+## Findings from simulation (exp 012)
+Timing inside the belief (ridge-shrunk state coefficient on the per-period calibration slope) beat its untimed twin by +0.0020 per period (90% interval 0.0009 to 0.0033) when skill depended on an observable state, and cost 5.9% of the return when it did not. Real regimes are fewer and noisier than 20 simulated seeds of 1,000 periods; the real test is the paired timed-versus-untimed run per agent.
+
 ## Consequences
 Honest expectation: the market mostly holds carry and time-series momentum; timing may add little; several agents will sit at floor wealth.
 
