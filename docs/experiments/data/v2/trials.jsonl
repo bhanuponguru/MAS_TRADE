@@ -1,0 +1,232 @@
+{"time": "2026-10-29 10:26:42", "bar": "1d", "universe": "broad", "name": "XSMomentum", "sharpe_ann": -0.4172503169749693, "bars": 1878, "unsealed": false}
+{"time": "2026-10-29 10:26:42", "bar": "1d", "universe": "broad", "name": "ResidualReversal", "sharpe_ann": -0.675711681805144, "bars": 1878, "unsealed": false}
+{"time": "2026-10-29 10:26:42", "bar": "1d", "universe": "broad", "name": "FundingCarry", "sharpe_ann": 1.0304224848378352, "bars": 1878, "unsealed": false}
+{"time": "2026-10-29 10:26:42", "bar": "1d", "universe": "broad", "name": "SizeLiquidity", "sharpe_ann": -0.1391758726271701, "bars": 1878, "unsealed": false}
+{"time": "2026-10-29 10:26:42", "bar": "1d", "universe": "broad", "name": "Timing", "sharpe_ann": 0.5662219764161278, "bars": 1878, "unsealed": false}
+{"time": "2026-10-29 10:26:42", "bar": "1d", "universe": "broad", "name": "EW", "sharpe_ann": 0.22489028379790116, "bars": 1878, "unsealed": false}
+{"time": "2026-10-29 10:26:42", "bar": "1d", "universe": "broad", "name": "InvVol", "sharpe_ann": 0.26955361506564757, "bars": 1878, "unsealed": false}
+{"time": "2026-10-29 10:27:18", "bar": "4h", "universe": "broad", "name": "XSMomentum", "sharpe_ann": -0.22728014208157338, "bars": 11369, "unsealed": false}
+{"time": "2026-10-29 10:27:18", "bar": "4h", "universe": "broad", "name": "ResidualReversal", "sharpe_ann": -1.1130912262784256, "bars": 11369, "unsealed": false}
+{"time": "2026-10-29 10:27:18", "bar": "4h", "universe": "broad", "name": "FundingCarry", "sharpe_ann": 0.993090191624963, "bars": 11369, "unsealed": false}
+{"time": "2026-10-29 10:27:18", "bar": "4h", "universe": "broad", "name": "SizeLiquidity", "sharpe_ann": -0.21726771024884783, "bars": 11369, "unsealed": false}
+{"time": "2026-10-29 10:27:18", "bar": "4h", "universe": "broad", "name": "Timing", "sharpe_ann": 0.462809099238203, "bars": 11369, "unsealed": false}
+{"time": "2026-10-29 10:27:18", "bar": "4h", "universe": "broad", "name": "EW", "sharpe_ann": -0.09135082994075, "bars": 11369, "unsealed": false}
+{"time": "2026-10-29 10:27:18", "bar": "4h", "universe": "broad", "name": "InvVol", "sharpe_ann": -0.04344391979452333, "bars": 11369, "unsealed": false}
+{"time": "2026-10-29 10:29:10", "bar": "1h", "universe": "broad", "name": "XSMomentum", "sharpe_ann": -0.1473318460775702, "bars": 45575, "unsealed": false}
+{"time": "2026-10-29 10:29:10", "bar": "1h", "universe": "broad", "name": "ResidualReversal", "sharpe_ann": -1.2441259851071138, "bars": 45575, "unsealed": false}
+{"time": "2026-10-29 10:29:10", "bar": "1h", "universe": "broad", "name": "FundingCarry", "sharpe_ann": 0.8753969008321575, "bars": 45575, "unsealed": false}
+{"time": "2026-10-29 10:29:10", "bar": "1h", "universe": "broad", "name": "SizeLiquidity", "sharpe_ann": -0.319599418550833, "bars": 45575, "unsealed": false}
+{"time": "2026-10-29 10:29:10", "bar": "1h", "universe": "broad", "name": "Timing", "sharpe_ann": 0.8024907191933385, "bars": 45575, "unsealed": false}
+{"time": "2026-10-29 10:29:10", "bar": "1h", "universe": "broad", "name": "EW", "sharpe_ann": -0.09138808044360791, "bars": 45575, "unsealed": false}
+{"time": "2026-10-29 10:29:10", "bar": "1h", "universe": "broad", "name": "InvVol", "sharpe_ann": 0.1779554984073027, "bars": 45575, "unsealed": false}
+{"time": "2026-10-29 10:58:04", "bar": "1d", "universe": "broad", "name": "XSMomentum", "sharpe_ann": -0.2197881640638153, "bars": 1878, "unsealed": false, "smooth": true}
+{"time": "2026-10-29 10:58:04", "bar": "1d", "universe": "broad", "name": "ResidualReversal", "sharpe_ann": -0.4575263329137136, "bars": 1878, "unsealed": false, "smooth": true}
+{"time": "2026-10-29 10:58:04", "bar": "1d", "universe": "broad", "name": "FundingCarry", "sharpe_ann": 0.9872652876478626, "bars": 1878, "unsealed": false, "smooth": true}
+{"time": "2026-10-29 10:58:04", "bar": "1d", "universe": "broad", "name": "SizeLiquidity", "sharpe_ann": -0.16292415934131912, "bars": 1878, "unsealed": false, "smooth": true}
+{"time": "2026-10-29 10:58:04", "bar": "1d", "universe": "broad", "name": "Timing", "sharpe_ann": 0.8457109163620001, "bars": 1878, "unsealed": false, "smooth": true}
+{"time": "2026-10-29 10:58:04", "bar": "1d", "universe": "broad", "name": "EW", "sharpe_ann": 0.4147772037734407, "bars": 1878, "unsealed": false, "smooth": true}
+{"time": "2026-10-29 10:58:04", "bar": "1d", "universe": "broad", "name": "InvVol", "sharpe_ann": 0.39478925467830694, "bars": 1878, "unsealed": false, "smooth": true}
+{"time": "2026-10-29 10:58:23", "bar": "4h", "universe": "broad", "name": "XSMomentum", "sharpe_ann": -0.19865996594266086, "bars": 11369, "unsealed": false, "smooth": true}
+{"time": "2026-10-29 10:58:23", "bar": "4h", "universe": "broad", "name": "ResidualReversal", "sharpe_ann": -0.9758094090027117, "bars": 11369, "unsealed": false, "smooth": true}
+{"time": "2026-10-29 10:58:23", "bar": "4h", "universe": "broad", "name": "FundingCarry", "sharpe_ann": 1.0738116270016793, "bars": 11369, "unsealed": false, "smooth": true}
+{"time": "2026-10-29 10:58:23", "bar": "4h", "universe": "broad", "name": "SizeLiquidity", "sharpe_ann": -0.22098653366988544, "bars": 11369, "unsealed": false, "smooth": true}
+{"time": "2026-10-29 10:58:23", "bar": "4h", "universe": "broad", "name": "Timing", "sharpe_ann": 0.8260722308295158, "bars": 11369, "unsealed": false, "smooth": true}
+{"time": "2026-10-29 10:58:23", "bar": "4h", "universe": "broad", "name": "EW", "sharpe_ann": 0.24565675287961936, "bars": 11369, "unsealed": false, "smooth": true}
+{"time": "2026-10-29 10:58:23", "bar": "4h", "universe": "broad", "name": "InvVol", "sharpe_ann": 0.34960177002224196, "bars": 11369, "unsealed": false, "smooth": true}
+{"time": "2026-10-29 11:00:04", "bar": "1h", "universe": "broad", "name": "XSMomentum", "sharpe_ann": 0.0612783042813612, "bars": 45575, "unsealed": false, "smooth": true}
+{"time": "2026-10-29 11:00:04", "bar": "1h", "universe": "broad", "name": "ResidualReversal", "sharpe_ann": -0.9019637818247144, "bars": 45575, "unsealed": false, "smooth": true}
+{"time": "2026-10-29 11:00:04", "bar": "1h", "universe": "broad", "name": "FundingCarry", "sharpe_ann": 0.977891353982682, "bars": 45575, "unsealed": false, "smooth": true}
+{"time": "2026-10-29 11:00:04", "bar": "1h", "universe": "broad", "name": "SizeLiquidity", "sharpe_ann": -0.3928865755345511, "bars": 45575, "unsealed": false, "smooth": true}
+{"time": "2026-10-29 11:00:04", "bar": "1h", "universe": "broad", "name": "Timing", "sharpe_ann": 0.846319945347692, "bars": 45575, "unsealed": false, "smooth": true}
+{"time": "2026-10-29 11:00:04", "bar": "1h", "universe": "broad", "name": "EW", "sharpe_ann": 0.34124869479121367, "bars": 45575, "unsealed": false, "smooth": true}
+{"time": "2026-10-29 11:00:04", "bar": "1h", "universe": "broad", "name": "InvVol", "sharpe_ann": 0.4860426958780493, "bars": 45575, "unsealed": false, "smooth": true}
+{"time": "2026-10-29 11:00:49", "bar": "1d", "universe": "broad", "name": "XSMomentum", "sharpe_ann": -0.3421286411409384, "bars": 1878, "unsealed": false, "smooth": true}
+{"time": "2026-10-29 11:00:49", "bar": "1d", "universe": "broad", "name": "ResidualReversal", "sharpe_ann": -0.5693157632081921, "bars": 1878, "unsealed": false, "smooth": true}
+{"time": "2026-10-29 11:00:49", "bar": "1d", "universe": "broad", "name": "FundingCarry", "sharpe_ann": 1.007973784047484, "bars": 1878, "unsealed": false, "smooth": true}
+{"time": "2026-10-29 11:00:49", "bar": "1d", "universe": "broad", "name": "SizeLiquidity", "sharpe_ann": 0.038157052303801585, "bars": 1878, "unsealed": false, "smooth": true}
+{"time": "2026-10-29 11:00:49", "bar": "1d", "universe": "broad", "name": "Timing", "sharpe_ann": 0.9636709877527204, "bars": 1878, "unsealed": false, "smooth": true}
+{"time": "2026-10-29 11:00:49", "bar": "1d", "universe": "broad", "name": "EW", "sharpe_ann": 0.7534322292770261, "bars": 1878, "unsealed": false, "smooth": true}
+{"time": "2026-10-29 11:00:49", "bar": "1d", "universe": "broad", "name": "InvVol", "sharpe_ann": 0.783355052342993, "bars": 1878, "unsealed": false, "smooth": true}
+{"time": "2026-10-29 11:01:02", "bar": "4h", "universe": "broad", "name": "XSMomentum", "sharpe_ann": -0.29921250665978155, "bars": 11369, "unsealed": false, "smooth": true}
+{"time": "2026-10-29 11:01:02", "bar": "4h", "universe": "broad", "name": "ResidualReversal", "sharpe_ann": -0.9520267497399306, "bars": 11369, "unsealed": false, "smooth": true}
+{"time": "2026-10-29 11:01:02", "bar": "4h", "universe": "broad", "name": "FundingCarry", "sharpe_ann": 1.131709619245476, "bars": 11369, "unsealed": false, "smooth": true}
+{"time": "2026-10-29 11:01:02", "bar": "4h", "universe": "broad", "name": "SizeLiquidity", "sharpe_ann": -0.0005721187914929562, "bars": 11369, "unsealed": false, "smooth": true}
+{"time": "2026-10-29 11:01:02", "bar": "4h", "universe": "broad", "name": "Timing", "sharpe_ann": 0.6737951575879064, "bars": 11369, "unsealed": false, "smooth": true}
+{"time": "2026-10-29 11:01:02", "bar": "4h", "universe": "broad", "name": "EW", "sharpe_ann": 0.6114936629577563, "bars": 11369, "unsealed": false, "smooth": true}
+{"time": "2026-10-29 11:01:02", "bar": "4h", "universe": "broad", "name": "InvVol", "sharpe_ann": 0.5937666871139671, "bars": 11369, "unsealed": false, "smooth": true}
+{"time": "2026-10-29 11:01:51", "bar": "1h", "universe": "broad", "name": "XSMomentum", "sharpe_ann": -0.06865535296304111, "bars": 45575, "unsealed": false, "smooth": true}
+{"time": "2026-10-29 11:01:51", "bar": "1h", "universe": "broad", "name": "ResidualReversal", "sharpe_ann": -0.9105149816157416, "bars": 45575, "unsealed": false, "smooth": true}
+{"time": "2026-10-29 11:01:51", "bar": "1h", "universe": "broad", "name": "FundingCarry", "sharpe_ann": 1.0296707218386267, "bars": 45575, "unsealed": false, "smooth": true}
+{"time": "2026-10-29 11:01:51", "bar": "1h", "universe": "broad", "name": "SizeLiquidity", "sharpe_ann": -0.11675119310885043, "bars": 45575, "unsealed": false, "smooth": true}
+{"time": "2026-10-29 11:01:51", "bar": "1h", "universe": "broad", "name": "Timing", "sharpe_ann": 0.9907657329622461, "bars": 45575, "unsealed": false, "smooth": true}
+{"time": "2026-10-29 11:01:51", "bar": "1h", "universe": "broad", "name": "EW", "sharpe_ann": 0.8627470996335614, "bars": 45575, "unsealed": false, "smooth": true}
+{"time": "2026-10-29 11:01:51", "bar": "1h", "universe": "broad", "name": "InvVol", "sharpe_ann": 0.9564052242294085, "bars": 45575, "unsealed": false, "smooth": true}
+{"time": "2026-10-29 11:16:51", "bar": "1d", "universe": "broad", "name": "XSMomentum", "sharpe_ann": -0.3421286411409384, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 11:16:51", "bar": "1d", "universe": "broad", "name": "ResidualReversal", "sharpe_ann": -0.5693157632081921, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 11:16:51", "bar": "1d", "universe": "broad", "name": "FundingCarry", "sharpe_ann": 1.007973784047484, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 11:16:51", "bar": "1d", "universe": "broad", "name": "SizeLiquidity", "sharpe_ann": 0.038157052303801585, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 11:16:51", "bar": "1d", "universe": "broad", "name": "Timing", "sharpe_ann": 0.8457109163620001, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 11:16:51", "bar": "1d", "universe": "broad", "name": "EW", "sharpe_ann": 0.4546183310137965, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 11:16:51", "bar": "1d", "universe": "broad", "name": "InvVol", "sharpe_ann": 0.5619367979084965, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 11:16:51", "bar": "1d", "universe": "broad", "name": "Hedge", "sharpe_ann": 0.445947524702334, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 11:16:51", "bar": "1d", "universe": "broad", "name": "RiskBudget", "sharpe_ann": -0.4840301756930644, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 11:16:51", "bar": "1d", "universe": "broad", "name": "Hedge+RB", "sharpe_ann": 0.24857899128567099, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 11:17:08", "bar": "4h", "universe": "broad", "name": "XSMomentum", "sharpe_ann": -0.29921250665978155, "bars": 11369, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 11:17:08", "bar": "4h", "universe": "broad", "name": "ResidualReversal", "sharpe_ann": -0.9520267497399306, "bars": 11369, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 11:17:08", "bar": "4h", "universe": "broad", "name": "FundingCarry", "sharpe_ann": 1.131709619245476, "bars": 11369, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 11:17:08", "bar": "4h", "universe": "broad", "name": "SizeLiquidity", "sharpe_ann": -0.0005721187914929562, "bars": 11369, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 11:17:08", "bar": "4h", "universe": "broad", "name": "Timing", "sharpe_ann": 0.8260722308295158, "bars": 11369, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 11:17:08", "bar": "4h", "universe": "broad", "name": "EW", "sharpe_ann": 0.33106041018234783, "bars": 11369, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 11:17:08", "bar": "4h", "universe": "broad", "name": "InvVol", "sharpe_ann": 0.44276842851830633, "bars": 11369, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 11:17:08", "bar": "4h", "universe": "broad", "name": "Hedge", "sharpe_ann": 0.5012840237232972, "bars": 11369, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 11:17:08", "bar": "4h", "universe": "broad", "name": "RiskBudget", "sharpe_ann": -0.32600759994778244, "bars": 11369, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 11:17:08", "bar": "4h", "universe": "broad", "name": "Hedge+RB", "sharpe_ann": -0.01846270586562218, "bars": 11369, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 11:18:16", "bar": "1h", "universe": "broad", "name": "XSMomentum", "sharpe_ann": -0.06865535296304111, "bars": 45575, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 11:18:16", "bar": "1h", "universe": "broad", "name": "ResidualReversal", "sharpe_ann": -0.9105149816157416, "bars": 45575, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 11:18:16", "bar": "1h", "universe": "broad", "name": "FundingCarry", "sharpe_ann": 1.0296707218386267, "bars": 45575, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 11:18:16", "bar": "1h", "universe": "broad", "name": "SizeLiquidity", "sharpe_ann": -0.11675119310885043, "bars": 45575, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 11:18:16", "bar": "1h", "universe": "broad", "name": "Timing", "sharpe_ann": 0.846319945347692, "bars": 45575, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 11:18:16", "bar": "1h", "universe": "broad", "name": "EW", "sharpe_ann": 0.4732036812339673, "bars": 45575, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 11:18:16", "bar": "1h", "universe": "broad", "name": "InvVol", "sharpe_ann": 0.5762693133625607, "bars": 45575, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 11:18:16", "bar": "1h", "universe": "broad", "name": "Hedge", "sharpe_ann": 0.5769601979856439, "bars": 45575, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 11:18:16", "bar": "1h", "universe": "broad", "name": "RiskBudget", "sharpe_ann": -0.6039861087536024, "bars": 45575, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 11:18:16", "bar": "1h", "universe": "broad", "name": "Hedge+RB", "sharpe_ann": -0.4735204238704663, "bars": 45575, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:49:54", "bar": "1d", "universe": "broad", "name": "XSMomentum", "sharpe_ann": -0.3421286411409384, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:49:54", "bar": "1d", "universe": "broad", "name": "ResidualReversal", "sharpe_ann": -0.5693157632081921, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:49:54", "bar": "1d", "universe": "broad", "name": "FundingCarry", "sharpe_ann": 1.007973784047484, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:49:54", "bar": "1d", "universe": "broad", "name": "SizeLiquidity", "sharpe_ann": 0.038157052303801585, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:49:54", "bar": "1d", "universe": "broad", "name": "Timing", "sharpe_ann": 0.8457109163620001, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:49:54", "bar": "1d", "universe": "broad", "name": "EW", "sharpe_ann": 0.4546183310137965, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:49:54", "bar": "1d", "universe": "broad", "name": "InvVol", "sharpe_ann": 0.5619367979084965, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:49:54", "bar": "1d", "universe": "broad", "name": "Hedge", "sharpe_ann": 0.445947524702334, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:49:54", "bar": "1d", "universe": "broad", "name": "RiskBudget", "sharpe_ann": -0.4840301756930644, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:49:54", "bar": "1d", "universe": "broad", "name": "Hedge+RB", "sharpe_ann": 0.24857899128567099, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:49:54", "bar": "1d", "universe": "broad", "name": "C3-xs", "sharpe_ann": -0.12767591358008162, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:49:54", "bar": "1d", "universe": "broad", "name": "C3+Timing", "sharpe_ann": 0.01626733650419912, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:50:06", "bar": "4h", "universe": "broad", "name": "XSMomentum", "sharpe_ann": -0.29921250665978155, "bars": 11369, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:50:06", "bar": "4h", "universe": "broad", "name": "ResidualReversal", "sharpe_ann": -0.9520267497399306, "bars": 11369, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:50:06", "bar": "4h", "universe": "broad", "name": "FundingCarry", "sharpe_ann": 1.131709619245476, "bars": 11369, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:50:06", "bar": "4h", "universe": "broad", "name": "SizeLiquidity", "sharpe_ann": -0.0005721187914929562, "bars": 11369, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:50:06", "bar": "4h", "universe": "broad", "name": "Timing", "sharpe_ann": 0.8260722308295158, "bars": 11369, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:50:06", "bar": "4h", "universe": "broad", "name": "EW", "sharpe_ann": 0.33106041018234783, "bars": 11369, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:50:06", "bar": "4h", "universe": "broad", "name": "InvVol", "sharpe_ann": 0.44276842851830633, "bars": 11369, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:50:06", "bar": "4h", "universe": "broad", "name": "Hedge", "sharpe_ann": 0.5012840237232972, "bars": 11369, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:50:06", "bar": "4h", "universe": "broad", "name": "RiskBudget", "sharpe_ann": -0.32600759994778244, "bars": 11369, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:50:06", "bar": "4h", "universe": "broad", "name": "Hedge+RB", "sharpe_ann": -0.01846270586562218, "bars": 11369, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:50:06", "bar": "4h", "universe": "broad", "name": "C3-xs", "sharpe_ann": -0.410579705177098, "bars": 11369, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:50:06", "bar": "4h", "universe": "broad", "name": "C3+Timing", "sharpe_ann": -0.1895941360530677, "bars": 11369, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:51:02", "bar": "1h", "universe": "broad", "name": "XSMomentum", "sharpe_ann": -0.06865535296304111, "bars": 45575, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:51:02", "bar": "1h", "universe": "broad", "name": "ResidualReversal", "sharpe_ann": -0.9105149816157416, "bars": 45575, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:51:02", "bar": "1h", "universe": "broad", "name": "FundingCarry", "sharpe_ann": 1.0296707218386267, "bars": 45575, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:51:02", "bar": "1h", "universe": "broad", "name": "SizeLiquidity", "sharpe_ann": -0.11675119310885043, "bars": 45575, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:51:02", "bar": "1h", "universe": "broad", "name": "Timing", "sharpe_ann": 0.846319945347692, "bars": 45575, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:51:02", "bar": "1h", "universe": "broad", "name": "EW", "sharpe_ann": 0.4732036812339673, "bars": 45575, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:51:02", "bar": "1h", "universe": "broad", "name": "InvVol", "sharpe_ann": 0.5762693133625607, "bars": 45575, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:51:02", "bar": "1h", "universe": "broad", "name": "Hedge", "sharpe_ann": 0.5769601979856439, "bars": 45575, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:51:02", "bar": "1h", "universe": "broad", "name": "RiskBudget", "sharpe_ann": -0.6039861087536024, "bars": 45575, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:51:02", "bar": "1h", "universe": "broad", "name": "Hedge+RB", "sharpe_ann": -0.4735204238704663, "bars": 45575, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:51:02", "bar": "1h", "universe": "broad", "name": "C3-xs", "sharpe_ann": -0.3049857708268684, "bars": 45575, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:51:02", "bar": "1h", "universe": "broad", "name": "C3+Timing", "sharpe_ann": -0.03746510010026225, "bars": 45575, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:52:08", "bar": "1d", "universe": "broad", "name": "XSMomentum", "sharpe_ann": -0.3421286411409384, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:52:08", "bar": "1d", "universe": "broad", "name": "ResidualReversal", "sharpe_ann": -0.5693157632081921, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:52:08", "bar": "1d", "universe": "broad", "name": "FundingCarry", "sharpe_ann": 1.007973784047484, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:52:08", "bar": "1d", "universe": "broad", "name": "SizeLiquidity", "sharpe_ann": 0.038157052303801585, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:52:08", "bar": "1d", "universe": "broad", "name": "Timing", "sharpe_ann": 0.8457109163620001, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:52:08", "bar": "1d", "universe": "broad", "name": "EW", "sharpe_ann": 0.4546183310137965, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:52:08", "bar": "1d", "universe": "broad", "name": "InvVol", "sharpe_ann": 0.5619367979084965, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:52:08", "bar": "1d", "universe": "broad", "name": "Hedge", "sharpe_ann": 0.445947524702334, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:52:08", "bar": "1d", "universe": "broad", "name": "RiskBudget", "sharpe_ann": -0.4840301756930644, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:52:08", "bar": "1d", "universe": "broad", "name": "Hedge+RB", "sharpe_ann": 0.24857899128567099, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:52:08", "bar": "1d", "universe": "broad", "name": "C3-xs", "sharpe_ann": -0.3122090974674716, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:52:08", "bar": "1d", "universe": "broad", "name": "C3+Timing", "sharpe_ann": -0.10321194962793302, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:52:08", "bar": "1d", "universe": "broad", "name": "C3-xs (full cov)", "sharpe_ann": -0.12767591358008162, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:52:20", "bar": "4h", "universe": "broad", "name": "XSMomentum", "sharpe_ann": -0.29921250665978155, "bars": 11369, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:52:20", "bar": "4h", "universe": "broad", "name": "ResidualReversal", "sharpe_ann": -0.9520267497399306, "bars": 11369, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:52:20", "bar": "4h", "universe": "broad", "name": "FundingCarry", "sharpe_ann": 1.131709619245476, "bars": 11369, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:52:20", "bar": "4h", "universe": "broad", "name": "SizeLiquidity", "sharpe_ann": -0.0005721187914929562, "bars": 11369, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:52:20", "bar": "4h", "universe": "broad", "name": "Timing", "sharpe_ann": 0.8260722308295158, "bars": 11369, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:52:20", "bar": "4h", "universe": "broad", "name": "EW", "sharpe_ann": 0.33106041018234783, "bars": 11369, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:52:20", "bar": "4h", "universe": "broad", "name": "InvVol", "sharpe_ann": 0.44276842851830633, "bars": 11369, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:52:20", "bar": "4h", "universe": "broad", "name": "Hedge", "sharpe_ann": 0.5012840237232972, "bars": 11369, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:52:20", "bar": "4h", "universe": "broad", "name": "RiskBudget", "sharpe_ann": -0.32600759994778244, "bars": 11369, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:52:20", "bar": "4h", "universe": "broad", "name": "Hedge+RB", "sharpe_ann": -0.01846270586562218, "bars": 11369, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:52:20", "bar": "4h", "universe": "broad", "name": "C3-xs", "sharpe_ann": -0.3850492877454898, "bars": 11369, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:52:20", "bar": "4h", "universe": "broad", "name": "C3+Timing", "sharpe_ann": -0.1136332710745416, "bars": 11369, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:52:20", "bar": "4h", "universe": "broad", "name": "C3-xs (full cov)", "sharpe_ann": -0.410579705177098, "bars": 11369, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:52:58", "bar": "1h", "universe": "broad", "name": "XSMomentum", "sharpe_ann": -0.06865535296304111, "bars": 45575, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:52:58", "bar": "1h", "universe": "broad", "name": "ResidualReversal", "sharpe_ann": -0.9105149816157416, "bars": 45575, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:52:58", "bar": "1h", "universe": "broad", "name": "FundingCarry", "sharpe_ann": 1.0296707218386267, "bars": 45575, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:52:58", "bar": "1h", "universe": "broad", "name": "SizeLiquidity", "sharpe_ann": -0.11675119310885043, "bars": 45575, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:52:58", "bar": "1h", "universe": "broad", "name": "Timing", "sharpe_ann": 0.846319945347692, "bars": 45575, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:52:58", "bar": "1h", "universe": "broad", "name": "EW", "sharpe_ann": 0.4732036812339673, "bars": 45575, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:52:58", "bar": "1h", "universe": "broad", "name": "InvVol", "sharpe_ann": 0.5762693133625607, "bars": 45575, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:52:58", "bar": "1h", "universe": "broad", "name": "Hedge", "sharpe_ann": 0.5769601979856439, "bars": 45575, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:52:58", "bar": "1h", "universe": "broad", "name": "RiskBudget", "sharpe_ann": -0.6039861087536024, "bars": 45575, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:52:58", "bar": "1h", "universe": "broad", "name": "Hedge+RB", "sharpe_ann": -0.4735204238704663, "bars": 45575, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:52:58", "bar": "1h", "universe": "broad", "name": "C3-xs", "sharpe_ann": -0.38242324684086987, "bars": 45575, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:52:58", "bar": "1h", "universe": "broad", "name": "C3+Timing", "sharpe_ann": -0.07632397755294716, "bars": 45575, "unsealed": false, "smooth": "books"}
+{"time": "2026-10-29 15:52:58", "bar": "1h", "universe": "broad", "name": "C3-xs (full cov)", "sharpe_ann": -0.3049857708268684, "bars": 45575, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:17:27", "bar": "1d", "universe": "broad", "name": "XSMomentum", "sharpe_ann": -0.3421286411409384, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:17:27", "bar": "1d", "universe": "broad", "name": "ResidualReversal", "sharpe_ann": -0.5693157632081921, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:17:27", "bar": "1d", "universe": "broad", "name": "FundingCarry", "sharpe_ann": 1.007973784047484, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:17:27", "bar": "1d", "universe": "broad", "name": "SizeLiquidity", "sharpe_ann": 0.038157052303801585, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:17:27", "bar": "1d", "universe": "broad", "name": "Timing", "sharpe_ann": 0.8457109163620001, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:17:27", "bar": "1d", "universe": "broad", "name": "EW", "sharpe_ann": 0.4546183310137965, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:17:27", "bar": "1d", "universe": "broad", "name": "InvVol", "sharpe_ann": 0.5619367979084965, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:17:27", "bar": "1d", "universe": "broad", "name": "Hedge", "sharpe_ann": 0.445947524702334, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:17:27", "bar": "1d", "universe": "broad", "name": "RiskBudget", "sharpe_ann": -0.4840301756930644, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:17:27", "bar": "1d", "universe": "broad", "name": "Hedge+RB", "sharpe_ann": 0.24857899128567099, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:17:27", "bar": "1d", "universe": "broad", "name": "C3-xs", "sharpe_ann": -0.3122090974674716, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:17:27", "bar": "1d", "universe": "broad", "name": "C3+Timing", "sharpe_ann": -0.10321194962793302, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:17:27", "bar": "1d", "universe": "broad", "name": "C3-xs (full cov)", "sharpe_ann": -0.12767591358008162, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:17:27", "bar": "1d", "universe": "broad", "name": "ADMM", "sharpe_ann": -0.37980906577187923, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:17:27", "bar": "1d", "universe": "broad", "name": "ADMM+Timing", "sharpe_ann": -0.21505544326759685, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:17:27", "bar": "1d", "universe": "broad", "name": "ADMM (no cost)", "sharpe_ann": -0.1983493710673343, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:20:12", "bar": "1d", "universe": "broad", "name": "XSMomentum", "sharpe_ann": -0.3421286411409384, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:20:12", "bar": "1d", "universe": "broad", "name": "ResidualReversal", "sharpe_ann": -0.5693157632081921, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:20:12", "bar": "1d", "universe": "broad", "name": "FundingCarry", "sharpe_ann": 1.007973784047484, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:20:12", "bar": "1d", "universe": "broad", "name": "SizeLiquidity", "sharpe_ann": 0.038157052303801585, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:20:12", "bar": "1d", "universe": "broad", "name": "Timing", "sharpe_ann": 0.8457109163620001, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:20:12", "bar": "1d", "universe": "broad", "name": "EW", "sharpe_ann": 0.4546183310137965, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:20:12", "bar": "1d", "universe": "broad", "name": "InvVol", "sharpe_ann": 0.5619367979084965, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:20:12", "bar": "1d", "universe": "broad", "name": "Hedge", "sharpe_ann": 0.445947524702334, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:20:12", "bar": "1d", "universe": "broad", "name": "RiskBudget", "sharpe_ann": -0.4840301756930644, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:20:12", "bar": "1d", "universe": "broad", "name": "Hedge+RB", "sharpe_ann": 0.24857899128567099, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:20:12", "bar": "1d", "universe": "broad", "name": "C3-xs", "sharpe_ann": -0.3122090974674716, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:20:12", "bar": "1d", "universe": "broad", "name": "C3+Timing", "sharpe_ann": -0.10321194962793302, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:20:12", "bar": "1d", "universe": "broad", "name": "C3-xs (full cov)", "sharpe_ann": -0.12767591358008162, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:20:12", "bar": "1d", "universe": "broad", "name": "ADMM", "sharpe_ann": -0.3335603678890451, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:20:12", "bar": "1d", "universe": "broad", "name": "ADMM+Timing", "sharpe_ann": -0.1581967867991233, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:20:12", "bar": "1d", "universe": "broad", "name": "ADMM (no cost)", "sharpe_ann": -0.1988467880149181, "bars": 1878, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:21:58", "bar": "4h", "universe": "broad", "name": "XSMomentum", "sharpe_ann": -0.29921250665978155, "bars": 11369, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:21:58", "bar": "4h", "universe": "broad", "name": "ResidualReversal", "sharpe_ann": -0.9520267497399306, "bars": 11369, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:21:58", "bar": "4h", "universe": "broad", "name": "FundingCarry", "sharpe_ann": 1.131709619245476, "bars": 11369, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:21:58", "bar": "4h", "universe": "broad", "name": "SizeLiquidity", "sharpe_ann": -0.0005721187914929562, "bars": 11369, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:21:58", "bar": "4h", "universe": "broad", "name": "Timing", "sharpe_ann": 0.8260722308295158, "bars": 11369, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:21:58", "bar": "4h", "universe": "broad", "name": "EW", "sharpe_ann": 0.33106041018234783, "bars": 11369, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:21:58", "bar": "4h", "universe": "broad", "name": "InvVol", "sharpe_ann": 0.44276842851830633, "bars": 11369, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:21:58", "bar": "4h", "universe": "broad", "name": "Hedge", "sharpe_ann": 0.5012840237232972, "bars": 11369, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:21:58", "bar": "4h", "universe": "broad", "name": "RiskBudget", "sharpe_ann": -0.32600759994778244, "bars": 11369, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:21:58", "bar": "4h", "universe": "broad", "name": "Hedge+RB", "sharpe_ann": -0.01846270586562218, "bars": 11369, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:21:58", "bar": "4h", "universe": "broad", "name": "C3-xs", "sharpe_ann": -0.3850492877454898, "bars": 11369, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:21:58", "bar": "4h", "universe": "broad", "name": "C3+Timing", "sharpe_ann": -0.1136332710745416, "bars": 11369, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:21:58", "bar": "4h", "universe": "broad", "name": "C3-xs (full cov)", "sharpe_ann": -0.410579705177098, "bars": 11369, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:21:58", "bar": "4h", "universe": "broad", "name": "ADMM", "sharpe_ann": -0.1803684213951425, "bars": 11369, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:21:58", "bar": "4h", "universe": "broad", "name": "ADMM+Timing", "sharpe_ann": 0.018739317342583512, "bars": 11369, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:21:58", "bar": "4h", "universe": "broad", "name": "ADMM (no cost)", "sharpe_ann": -0.190789877548358, "bars": 11369, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:26:23", "bar": "1h", "universe": "broad", "name": "XSMomentum", "sharpe_ann": -0.06865535296304111, "bars": 45575, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:26:23", "bar": "1h", "universe": "broad", "name": "ResidualReversal", "sharpe_ann": -0.9105149816157416, "bars": 45575, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:26:23", "bar": "1h", "universe": "broad", "name": "FundingCarry", "sharpe_ann": 1.0296707218386267, "bars": 45575, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:26:23", "bar": "1h", "universe": "broad", "name": "SizeLiquidity", "sharpe_ann": -0.11675119310885043, "bars": 45575, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:26:23", "bar": "1h", "universe": "broad", "name": "Timing", "sharpe_ann": 0.846319945347692, "bars": 45575, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:26:23", "bar": "1h", "universe": "broad", "name": "EW", "sharpe_ann": 0.4732036812339673, "bars": 45575, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:26:23", "bar": "1h", "universe": "broad", "name": "InvVol", "sharpe_ann": 0.5762693133625607, "bars": 45575, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:26:23", "bar": "1h", "universe": "broad", "name": "Hedge", "sharpe_ann": 0.5769601979856439, "bars": 45575, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:26:23", "bar": "1h", "universe": "broad", "name": "RiskBudget", "sharpe_ann": -0.6039861087536024, "bars": 45575, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:26:23", "bar": "1h", "universe": "broad", "name": "Hedge+RB", "sharpe_ann": -0.4735204238704663, "bars": 45575, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:26:23", "bar": "1h", "universe": "broad", "name": "C3-xs", "sharpe_ann": -0.38242324684086987, "bars": 45575, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:26:23", "bar": "1h", "universe": "broad", "name": "C3+Timing", "sharpe_ann": -0.07632397755294716, "bars": 45575, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:26:23", "bar": "1h", "universe": "broad", "name": "C3-xs (full cov)", "sharpe_ann": -0.3049857708268684, "bars": 45575, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:26:23", "bar": "1h", "universe": "broad", "name": "ADMM", "sharpe_ann": -0.13970853946369935, "bars": 45575, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:26:23", "bar": "1h", "universe": "broad", "name": "ADMM+Timing", "sharpe_ann": 0.06739079100842732, "bars": 45575, "unsealed": false, "smooth": "books"}
+{"time": "2026-11-03 11:26:23", "bar": "1h", "universe": "broad", "name": "ADMM (no cost)", "sharpe_ann": -0.285711896160103, "bars": 45575, "unsealed": false, "smooth": "books"}

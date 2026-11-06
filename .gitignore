@@ -3,3 +3,6 @@ references/
 __pycache__/
 results/
 data/
+
+# reference tables of the legacy implementation are committed on purpose
+!docs/experiments/data/
