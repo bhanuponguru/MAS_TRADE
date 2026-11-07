@@ -95,6 +95,10 @@ class RankAgent(SignalAgent):
         if np.isfinite(ic):
             self.ics.append(ic)
 
+    def skill_summary(self):
+        from ..diagnostics import ic_summary
+        return ic_summary(self.ics)
+
     def killed(self):
         x = self.sign * np.array(self.ics)
         if len(x) < self.kill_min_obs or x.std(ddof=1) == 0:
@@ -136,11 +140,19 @@ class TimeSeriesAgent(SignalAgent):
         self.n += int(ok.sum())
         self.periods += 1
 
-    def killed(self):
-        if self.periods < self.kill_min_obs or self.sss == 0 or self.n < 3:
-            return False
+    def _slope_t(self):
+        if self.sss == 0 or self.n < 3:
+            return np.nan, np.nan
         b = self.szr / self.sss
         resid = (self.srr - b * self.szr) / (self.n - 1)
-        if resid <= 0:
+        return b, (b * np.sqrt(self.sss) / np.sqrt(resid) if resid > 0 else np.nan)
+
+    def skill_summary(self):
+        b, t = self._slope_t()
+        return {"slope": b, "t": t, "n": self.n}
+
+    def killed(self):
+        if self.periods < self.kill_min_obs:
             return False
-        return bool(self.sign * b * np.sqrt(self.sss) / np.sqrt(resid) < self.kill_t)
+        t = self._slope_t()[1]
+        return bool(np.isfinite(t) and self.sign * t < self.kill_t)

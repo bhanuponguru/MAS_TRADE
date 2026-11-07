@@ -209,9 +209,12 @@ class _Agent:
 
 
 def solve_cells(p, rho=None, sigma=None, iters=3000, tol=1e-7, inner=10, warm=None):
-    """Sharing ADMM over the cells of CellProblem p. rho, sigma default to the typical curvature of the agents' risk."""
+    """Sharing ADMM over the cells of CellProblem p. rho and sigma default to 3 x the typical curvature of the agents' own risk
+    plus the system variance price (3x was the fastest of 1, 2, 3, 5 on the random test problems and on real engine problems; the
+    optimum does not depend on it). A warm start only helps when the next problem is a small change of the last one; a warm start
+    taken from a different variance price made convergence 8x slower on real problems, so the engine solves cold."""
     M, N = p.mu.shape
-    curv = float(np.mean(p.gamma) * max(np.mean(p.d), 1e-12))
+    curv = 3.0 * float((np.mean(p.gamma) + p.vol_penalty) * max(np.mean(p.d), 1e-12))
     rho = curv if rho is None else rho
     sigma = curv if sigma is None else sigma
     agents = [_Agent(p, i, rho, sigma) for i in range(M)]

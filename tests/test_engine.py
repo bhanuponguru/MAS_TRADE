@@ -92,3 +92,19 @@ def test_kill_rule_acts_at_realistic_ic_not_only_extreme_ones():
     assert not ag.killed()
     ag.ics = [-0.3] * 10                                                      # too few periods to judge
     assert not ag.killed()
+
+
+def test_time_series_agent_skill_summary_and_kill_rule():
+    from mas_trade.agents.momentum import TimeSeriesMomentum
+    ag = TimeSeriesMomentum()
+    rng = np.random.default_rng(0)
+    for _ in range(40):                                        # the signal has the WRONG sign against realised returns
+        z = rng.normal(0, 1, 2)
+        ag.record(z, -0.05 * z + rng.normal(0, 0.02, 2))
+    s = ag.skill_summary()
+    assert s["slope"] < 0 and s["t"] < -2 and ag.killed()
+    ok = TimeSeriesMomentum()
+    for _ in range(40):
+        z = rng.normal(0, 1, 2)
+        ok.record(z, 0.05 * z + rng.normal(0, 0.02, 2))
+    assert ok.skill_summary()["t"] > 2 and not ok.killed()

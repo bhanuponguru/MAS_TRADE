@@ -14,7 +14,7 @@ import pandas as pd
 from mas_trade.agents.carry import RankCarry
 from mas_trade.agents.momentum import TimeSeriesMomentum
 from mas_trade.config import EngineConfig
-from mas_trade.diagnostics import ic_summary, log_trial
+from mas_trade.diagnostics import log_trial
 from mas_trade.engine import run_engine
 from mas_trade.metrics import block_bootstrap_sharpe, extended_stats, yearly_returns
 from mas_trade.panel import load_crypto_panel
@@ -62,8 +62,8 @@ print(pd.DataFrame({"pnl": acc.mean() * cfg.ppy, "ex-ante Sharpe": np.mean(res.e
                     "wealth share": res.wealth[-1] / res.wealth[-1].sum()}).round(3).to_string())
 print(f"specs: coin beliefs zeroed by the sanity spec {res.sanitized}; calibration multiplier min {np.min(res.kelly_scales):.2f}; "
       f"volatility limit binding at {np.mean(np.array(res.vol_price) > 0):.0%} of rebalances")
-print("\nrealised rank-IC of each agent's score against the return that followed (dev):")
-print(pd.DataFrame({a.name: ic_summary(a.ics) for a in agents}).T.round(3).to_string())
+print("\nrealised skill of each agent (rank IC for cross-sectional agents, pooled slope of returns on the signal for time-series ones), dev:")
+print(pd.DataFrame({a.name: a.skill_summary() for a in agents}).T.round(3).to_string())
 print("\nyearly returns:")
 print(yearly_returns(net.to_frame("net")).round(3).to_string())
 

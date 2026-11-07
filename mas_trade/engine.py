@@ -161,7 +161,7 @@ def run_engine(P, agents, cfg, solver=None, end=None):
             if v <= cfg.target_vol * 1.02 and (p.vol_penalty == 0.0 or v >= cfg.target_vol * 0.98):
                 break
             p.vol_penalty = max(g_eff * ((1.0 + p.vol_penalty / g_eff) * v / cfg.target_vol - 1.0), 0.0)
-            sol = solve(p, warm=sol.state)
+            sol = solve(p)
             v = exante(sol.x.sum(0))
         lam_prev = p.vol_penalty
         res.vol_price.append(p.vol_penalty)
