@@ -363,19 +363,6 @@ def load_panel(bar, root=None, top_n=50, start=None, end=None, universe=None, ma
     return rets, elig, fund, btc
 
 
-def load_premium(symbols, dates, bar, root=None):
-    """Hourly premium-index close (perp vs index) for `symbols` on the hourly grid that covers the bars `dates` of size `bar`.
-    The value stamped h is known at the END of hour h; NaN where a symbol has no data. Returns a float32 DataFrame."""
-    root = root or crypto_dir()
-    step = pd.Timedelta(FREQ[bar])
-    grid = pd.date_range(dates[0], dates[-1] + step - pd.Timedelta(hours=1), freq="1h", tz="UTC")
-    cols = {}
-    for s in symbols:
-        p = root / "premium" / "1h" / f"{s}.parquet"
-        cols[s] = pd.read_parquet(p, columns=["close"])["close"].reindex(grid).astype("float32") if p.exists() else np.nan
-    return pd.DataFrame(cols, index=grid, dtype="float32")
-
-
 def quality_report(rets, elig, big=0.5):
     """Per-symbol sanity table: span, bars, gaps inside the span, extreme bars, bars in the universe."""
     rows = {}

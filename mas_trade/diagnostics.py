@@ -68,17 +68,3 @@ def log_trial(path, **row):
 def read_trials(path):
     p = Path(path)
     return pd.DataFrame([json.loads(l) for l in p.read_text().splitlines()]) if p.exists() else pd.DataFrame()
-
-
-def block_bootstrap_mean(x, block=5, n_boot=2000, seed=0):
-    """Moving-block bootstrap of the mean of x. Returns (mean, 5th pct, 95th pct)."""
-    x = np.asarray(x, float)
-    x = x[np.isfinite(x)]
-    n = len(x)
-    block = int(min(max(block, 1), n))
-    rng = np.random.default_rng(seed)
-    nb = -(-n // block)
-    starts = rng.integers(0, n - block + 1, (n_boot, nb))
-    idx = (starts[:, :, None] + np.arange(block)).reshape(n_boot, -1)[:, :n]
-    d = x[idx].mean(1)
-    return float(x.mean()), float(np.percentile(d, 5)), float(np.percentile(d, 95))

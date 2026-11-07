@@ -97,11 +97,11 @@ def run_engine(P, agents, cfg, solver=None, end=None):
         W = apply_floor(limited_liability(W), cfg.wealth_floor)
         jj = np.union1d(ii, np.flatnonzero(np.abs(held).sum(0) > 1e-12))      # tradable coins plus anything still held
         pos = {j: q for q, j in enumerate(jj)}
-        tradable = np.zeros(len(jj), bool)
-        tradable[[pos[j] for j in ii]] = True
+        is_tradable = np.zeros(len(jj), bool)
+        is_tradable[[pos[j] for j in ii]] = True
         rb = P.btc[t - beta_b:t]
         beta = np.ones(len(jj))
-        beta[tradable] = betas(P.R[t - beta_b:t][:, jj[tradable]], rb)
+        beta[is_tradable] = betas(P.R[t - beta_b:t][:, jj[is_tradable]], rb)
         var_bar = P.R[t - cov_b:t][:, jj].var(0)
         d = np.maximum(var_bar - beta ** 2 * P.btc[t - cov_b:t].var(), 0.2 * var_bar) * H + 1e-12
         sig_d = P.R[t - cov_b:t][:, jj].std(0) * np.sqrt(bpd)
@@ -109,7 +109,7 @@ def run_engine(P, agents, cfg, solver=None, end=None):
         kappa = cfg.impact_k * sig_d * np.sqrt(cfg.aum / adv_j)
         mu = np.zeros((M, len(jj)))
         mu[:, [pos[j] for j in ii]] = beliefs
-        cap = np.where(tradable, cfg.participation * adv_j / cfg.aum, 0.0)[None, :].repeat(M, 0)
+        cap = np.where(is_tradable, cfg.participation * adv_j / cfg.aum, 0.0)[None, :].repeat(M, 0)
         Wn = np.maximum(W, 1e-9 * W.sum())
         p = CellProblem(mu=mu, gamma=1.0 / (cfg.kelly * Wn), d=d, H=held[:, jj].sum(0), fee=cfg.fee_bps / 1e4, kappa=kappa,
                         B=beta[:, None], F=np.array([[P.btc[t - cov_b:t].var() * H]]),

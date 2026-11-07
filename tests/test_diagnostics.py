@@ -48,13 +48,3 @@ def test_trial_log_roundtrip(tmp_path):
     t = read_trials(p)
     assert list(t["name"]) == ["a", "b"] and "time" in t
     assert read_trials(tmp_path / "none.jsonl").empty
-
-
-def test_block_bootstrap_mean_covers_the_true_mean_and_widens_with_noise():
-    from mas_trade.diagnostics import block_bootstrap_mean
-    rng = np.random.default_rng(0)
-    x = rng.normal(0.5, 1.0, 400)
-    m, lo, hi = block_bootstrap_mean(x, block=5)
-    assert lo < 0.5 < hi and abs(m - x.mean()) < 1e-12
-    _, lo2, hi2 = block_bootstrap_mean(rng.normal(0.5, 4.0, 400), block=5)
-    assert (hi2 - lo2) > (hi - lo)
