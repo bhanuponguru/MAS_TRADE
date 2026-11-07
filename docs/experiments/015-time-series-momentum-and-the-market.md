@@ -111,6 +111,17 @@ Exactly as Amendment 1 said: same card (0.05), same gates, same bars, one run ea
 5. **Why the mix beats both alone was not tested.** The likely reason is diversification (H2's beta to BTC is 0.04-0.05 and its correlation with carry was not measured here), which is an explanation, not a result; the gain says nothing about H2's Sharpe in future.
 6. Timing inside H2's belief was not run (only for admitted agents, next step).
 
+## Control added after 015b: market against a fixed-weight blend (`compare_blend.py`, `data/015/blend_control.csv`)
+Asked after the results: is the gain of carry + H2 over carry alone due to the market, or just to mixing two weakly related return streams? Control: a fixed blend of the two STAND-ALONE net-return series, with weights fixed before looking (50/50, and inverse-volatility, which came out at 0.44-0.48 on carry), against the market run; paired block-bootstrap Sharpe difference, market minus blend, 90% interval.
+
+| Bar | market | 50/50 blend | difference (interval) | inverse-vol blend | difference (interval) |
+|---|---|---|---|---|---|
+| 1d | 1.59 | 1.61 | -0.01 (-0.30 to +0.27) | 1.60 | -0.01 (-0.35 to +0.34) |
+| 4h | 1.62 | 1.48 | +0.14 (-0.16 to +0.43) | 1.47 | +0.15 (-0.18 to +0.46) |
+| 1h | 1.57 | 1.35 | +0.21 (-0.11 to +0.57) | 1.35 | +0.22 (-0.13 to +0.59) |
+
+**Reading: the market is not distinguishable from a fixed blend.** On 1d they are equal; on 4h and 1h the market is higher by 0.14-0.22 but every interval contains zero. So the gain of carry + H2 over carry alone (015b) is, on this evidence, diversification of two weakly related agents, which a fixed-weight mix delivers as well. This is the expectation stated in the plan (the structure's value is control, not return) and it is not a failure of the market: the blend uses the two stand-alone runs, each run under its own 20% volatility limit, which the market does not get for free. What the market offers beyond a blend (priced joint limits, netting of trades, wealth moving away from a decaying agent) is not exercised by two agents holding almost disjoint books and has not been demonstrated on real data; it was shown on simulated data (experiment 012).
+
 ## Not done
 Timing inside H2's belief (H2 is now admitted, so the timed-against-untimed twin is the next step); other hypotheses (cross-sectional momentum, reversal by liquidity bucket, illiquidity, low volatility, CTREND-style trend); the carry ladder's later rungs; the holdout is untouched.
 
