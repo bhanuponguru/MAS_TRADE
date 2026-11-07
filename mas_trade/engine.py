@@ -139,6 +139,11 @@ def run_engine(P, agents, cfg, solver=None, end=None):
         mu = np.zeros((M, len(jj)))
         mu[:, [pos[j] for j in ii]] = beliefs
         cap = np.where(is_tradable, cfg.participation * adv_j / cfg.aum, 0.0)[None, :].repeat(M, 0)
+        outside = {}                                            # an agent may only hold the coins its card names
+        for i, ag in enumerate(agents):
+            if getattr(ag, 'universe', None):
+                outside[i] = np.array([P.tickers[j] not in ag.universe for j in jj])
+                cap[i, outside[i]] = 0.0
         Wn = np.maximum(W, 1e-9 * W.sum())
         scale = np.ones(M)                                      # calibration spec: over-confident agents bet less
         for i in range(M):
@@ -169,7 +174,9 @@ def run_engine(P, agents, cfg, solver=None, end=None):
         res.unconverged += not sol.converged
         if not sol.converged:
             res.residuals.append(max(sol.primal_res, sol.dual_res))
-        x = sol.x
+        x = sol.x.copy()
+        for i, mask in outside.items():                         # the cell solve respects the cap to its tolerance; make it exact
+            x[i, mask] = 0.0
         Sx = np.array([[xi @ (d * xi) + (beta @ xi) ** 2 * Fvar[0, 0] for xi in x]])[0]
         res.exante.append(np.where(Sx > 0, (mu * x).sum(1) / np.sqrt(np.maximum(Sx, 1e-300)), 0.0) * np.sqrt(P.ppy / H))
         res.agent_gross.append(np.abs(x).sum(1))

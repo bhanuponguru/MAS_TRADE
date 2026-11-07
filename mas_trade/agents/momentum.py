@@ -24,6 +24,7 @@ from .base import TimeSeriesAgent
 class TimeSeriesMomentum(TimeSeriesAgent):
     name = "TSMomentum"
     coins = ("BTCUSDT", "ETHUSDT")
+    universe = coins                    # enforced: the book holds BTC and ETH only, no hedges in other coins
     ic_prior_mean = 0.05
 
     def __init__(self, days=30.0):

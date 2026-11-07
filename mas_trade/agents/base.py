@@ -45,6 +45,7 @@ class SignalAgent:
     kill_t = -2.0                 # kill rule: t-statistic below this (in the card's sign) switches the agent off
     kill_min_obs = 20             # ... after this many periods
     neutral = True                # dollar- and beta-neutral book (False for an agent that owns net exposure)
+    universe = None               # None, or the tickers the agent may hold (enforced by the engine: its card's universe)
 
     def __init__(self):
         self.last = None            # (tickers, z) of the previous decision

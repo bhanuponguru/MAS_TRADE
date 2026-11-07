@@ -108,3 +108,12 @@ def test_time_series_agent_skill_summary_and_kill_rule():
         z = rng.normal(0, 1, 2)
         ok.record(z, 0.05 * z + rng.normal(0, 0.02, 2))
     assert ok.skill_summary()["t"] > 2 and not ok.killed()
+
+
+def test_an_agent_only_holds_the_coins_of_its_card():
+    from mas_trade.agents.momentum import TimeSeriesMomentum
+    P = make_panel_synth(n=300, N=12, drift=np.random.default_rng(6).normal(0, 1, 12), strength=0.003)
+    res = run_engine(P, [TimeSeriesMomentum(days=10)], CFG)
+    allowed = {P.tickers.index(t) for t in TimeSeriesMomentum.universe if t in P.tickers}   # the synthetic panel has BTC only
+    held = {int(j) for jj, x in res.targets for j, v in zip(jj, x[0]) if abs(v) > 1e-9}
+    assert held and held <= allowed                              # no hedge positions in other coins
