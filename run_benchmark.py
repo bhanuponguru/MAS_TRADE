@@ -13,7 +13,7 @@ import pandas as pd
 
 from mas_trade.agents.carry import RankCarry
 from mas_trade.config import EngineConfig
-from mas_trade.diagnostics import log_trial
+from mas_trade.diagnostics import ic_summary, log_trial
 from mas_trade.engine import run_engine
 from mas_trade.metrics import block_bootstrap_sharpe, extended_stats, yearly_returns
 from mas_trade.panel import load_crypto_panel
@@ -33,7 +33,8 @@ cfg = EngineConfig.for_tier(args.bar)
 P = load_crypto_panel(args.bar, args.universe)
 cut = P.dates[-1] - pd.DateOffset(months=cfg.holdout_months)
 end = len(P.dates) if args.unseal else int((P.dates < cut).sum())
-res = run_engine(P, [AGENTS[a]() for a in args.agents], cfg, end=end)
+agents = [AGENTS[a]() for a in args.agents]
+res = run_engine(P, agents, cfg, end=end)
 print(f"{args.bar}/{args.universe}: {len(P.dates)} bars x {len(P.tickers)} symbols, H={cfg.rebal_bars} bars, "
       f"{res.dates[0].date()} -> {res.dates[-1].date()}" + ("  [HOLDOUT UNSEALED]" if args.unseal else "  [holdout sealed]"))
 
@@ -54,6 +55,8 @@ print(ann.drop("net").round(4).to_string(), "\n(sum", round(float(ann[["market",
 acc = pd.DataFrame(res.account, index=res.dates, columns=res.names)
 print("\nper-agent account P&L (annualised, units of initial equity) and final wealth share:")
 print(pd.DataFrame({"pnl": acc.mean() * cfg.ppy, "wealth share": res.wealth[-1] / res.wealth[-1].sum()}).round(4).to_string())
+print("\nrealised rank-IC of each agent's score against the return that followed (dev):")
+print(pd.DataFrame({a.name: ic_summary(a.ics) for a in agents}).T.round(3).to_string())
 print("\nyearly returns:")
 print(yearly_returns(net.to_frame("net")).round(3).to_string())
 

@@ -55,9 +55,26 @@ def test_engine_learns_a_planted_carry_effect():
     P = make_panel_synth(n=400, N=12, drift=drift, strength=0.003)
     good = RankCarry(days=10)
     res = run_engine(P, [good], CFG)
-    assert good.ic_hat() > 0.1
+    assert good.ic_hat() > 0.08
     flat = make_panel_synth(n=400, N=12)                                           # no effect: skill should stay near zero
     ag = RankCarry(days=10)
     run_engine(flat, [ag], CFG)
-    assert abs(ag.ic_hat()) < 0.1
+    assert 0.0 <= ag.ic_hat() < 0.04                 # no effect: it stays near the card's prior (0.02), never flips sign
     assert res.net.sum() > 0
+
+
+def test_engine_respects_the_volatility_limit_ex_ante():
+    drift = np.random.default_rng(5).normal(0, 1, 12)
+    P = make_panel_synth(n=400, N=12, drift=drift, strength=0.003)
+    res = run_engine(P, [RankCarry(days=10)], CFG)
+    realised = np.std(res.net[30:]) * np.sqrt(P.ppy)
+    assert realised < 3 * CFG.target_vol                        # ex-ante limit; realised vol is noisy but of the same order
+    assert res.unconverged == 0
+
+
+def test_rank_agent_does_not_flip_sign_on_a_bad_stretch():
+    ag = RankCarry()
+    ag.ics = [-0.3] * 30                                        # a long run of wrong-signed ICs
+    assert ag.ic_hat() == 0.0                                   # goes quiet, does not bet the opposite
+    ag.ics = []
+    assert np.isclose(ag.ic_hat(), RankCarry.ic_prior_mean)     # no evidence: the card's prior

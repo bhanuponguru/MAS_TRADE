@@ -107,6 +107,14 @@ def run_engine(P, agents, cfg, solver=None, end=None):
                         A=[np.column_stack([np.ones(len(jj)), beta]) for _ in range(M)], cap=cap,
                         margin=cfg.leverage * Wn, gross=cfg.gross * W.sum())
         sol = solve_cells(p, **(solver or {}))
+        for _ in range(3):                                     # the volatility limit, as risk aversion: shrink the Kelly fraction
+            X = sol.x.sum(0)
+            per_period = np.sqrt(X @ (d * X) + (beta @ X) ** 2 * p.F[0, 0])
+            ex_ante = per_period * np.sqrt(P.ppy / H)
+            if ex_ante <= cfg.target_vol * 1.02:
+                break
+            p.gamma = p.gamma * ex_ante / cfg.target_vol
+            sol = solve_cells(p, **(solver or {}))
         res.iters.append(sol.iters)
         res.unconverged += not sol.converged
         x = sol.x

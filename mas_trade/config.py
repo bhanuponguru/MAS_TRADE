@@ -30,8 +30,7 @@ class EngineConfig:
     gross: float = 3.0          # system gross cap, multiple of equity
     participation: float = 0.05  # capacity: a position may be at most this share of a coin's daily volume
     wealth_floor: float = 0.02  # minimum wealth share of an agent (a liveness device)
-    ic_halflife: float = 12.0   # in rebalances: memory of an agent's realised IC
-    ic_prior: float = 10.0      # pseudo-observations of IC = 0 shrinking the estimate toward no skill
+    target_vol: float = 0.20    # system volatility limit (annual), enforced through the risk aversion of the joint problem
 
     @property
     def ppy(self):
