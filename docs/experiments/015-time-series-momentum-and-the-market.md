@@ -28,7 +28,9 @@ See the docstring of `agents/momentum.py`: BTC and ETH only (the literature's pe
 **Expected outcome, stated up front.** With fixed card scales and wealth that moves slowly over five years the market should behave roughly like a fixed-weight mix, so "no significant gain over carry" is the likely result and a valid finding. 2020 to 2025 was a strong bull market, which favours any long-biased trend rule; H2's own Sharpe there is not evidence of timing skill, which is why admission is judged on the beta-adjusted intercept.
 
 ## Results
-(to be filled in as each step is run)
+(to be filled in when the nine runs finish)
 
-## Changes to rules
-None yet.
+## Changes to rules and process notes (disclosed)
+- **The batch was run three times.** The first attempt crashed on the time-series agent in the report (no IC list) after printing its headline; the second was stopped because the 4h runs of H2 were taking over an hour (solver speed, below); the third, on the final solver, is the one reported. Because each aborted attempt finished or half-finished some runs, the trial log (`results/trials.jsonl`, not committed) contains earlier "015" entries for 1d carry alone and for runs that were then repeated with identical settings; for the deflated Sharpe they count once each, not three times.
+- **I saw one unlogged headline before the formal H2 runs:** an unlogged timing run of H2 alone on 4h printed "Sharpe 0.125, volatility 33%". No rule was changed afterwards; it is mentioned because the formal runs are not blind to it.
+- **Solver work forced by the runs (no change to any rule):** the volatility price and the beta band together made the net-position step 100x slower (three nested root-finders); with a shared-loadings fast path, over-relaxation 1.7 and a penalty of 5x the combined curvature, 1d carry takes 49 s (was 5.5 min) and 4h H2 alone 11 min (was over 90 min, unfinished). A warm start across variance prices had made convergence 8x slower and was removed. The stopping rule was absolute (1e-7) and stopped real problems, whose positions are about 0.01, after about 10 iterations: it is now relative to the size of the cells (1e-6). The NET position is accurate to about 1e-6, the split of the net between agents (offsetting positions cost only their own risk) only to about 9% at that tolerance, so per-agent account attribution carries that noise and the system P&L does not. Carry alone on 1d gave Sharpe 1.257 before and after the change, so experiment 013's baseline is not affected.
