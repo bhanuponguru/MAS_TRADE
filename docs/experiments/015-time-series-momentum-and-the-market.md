@@ -27,8 +27,8 @@ See the docstring of `agents/momentum.py`: BTC and ETH only (the literature's pe
 
 **Expected outcome, stated up front.** With fixed card scales and wealth that moves slowly over five years the market should behave roughly like a fixed-weight mix, so "no significant gain over carry" is the likely result and a valid finding. 2020 to 2025 was a strong bull market, which favours any long-biased trend rule; H2's own Sharpe there is not evidence of timing skill, which is why admission is judged on the beta-adjusted intercept.
 
-## Results (dev period, run once each on the final solver; tables in `data/015/`)
-**Verdict: H2 fails both admission tests and the market of two is worse than carry alone on all three bar sizes. H2 is not admitted; the carry-alone result of experiment 013 stands.**
+## Results of 015a (unrestricted universe, as first run; tables in `data/015/`)
+**015a verdict: H2 as then implemented failed both admission tests and the market of two was worse than carry alone on all three bar sizes. This was superseded for the card-compliant agent by 015b (below), which reverses it: read 015b for the current verdict on H2.**
 
 | Bar | Run | Net Sharpe | CAGR | Vol | Max drawdown |
 |---|---|---|---|---|---|
@@ -59,7 +59,7 @@ Admission (a) FAILS (the lower bound is above 0 on none of three bars), admissio
 - **Specs:** no coin belief was zeroed by the sanity spec; the calibration spec reached its minimum multiplier (0.2) for carry in some windows on every bar size (the upper-bound rule fired when a window's slope was strongly negative) and never for H2 (two coins give too few observations: the spec has no power on it); the combined runs had 31 (1d), 5 (4h) and 0 (1h) cell solves that hit the iteration cap; the runner prints their ABSOLUTE residual rounded to three decimals (0.000), so their size relative to the solution (positions are about 0.01) was not recorded and nothing is claimed about it.
 
 ## Findings
-1. **H2 as implemented in this experiment (015a) does not add to carry; this is not yet a verdict on time-series momentum.** The pre-registered rule rejects it. But a review of what the agent actually held (Amendment 1) shows the book was not the card's: besides BTC and ETH it held hedge positions in other coins, so it was a BTC/ETH trend bet plus a short alt-basket spread, with realised volatility of 39% against a 20% limit. The near-zero BTC beta is the hedge, not evidence about the hypothesis. The card-compliant test is experiment 015b below.
+1. **H2 as implemented in 015a does not add to carry; this is not a verdict on time-series momentum (015b reverses it).** The pre-registered rule rejects it. But a review of what the agent actually held (Amendment 1) shows the book was not the card's: besides BTC and ETH it held hedge positions in other coins, so it was a BTC/ETH trend bet plus a short alt-basket spread, with realised volatility of 39% against a 20% limit. The near-zero BTC beta is the hedge, not evidence about the hypothesis. The card-compliant test is experiment 015b below.
 2. **The wealth market cut H2's capital to the floor, and the system still lost against carry alone** because of the equal starting split. This is the cost of starting from a neutral prior over which agent is right; it was stated as expected ("no significant gain over carry is the likely result"), and the realised outcome is worse: significantly so on 1d.
 3. **The priced volatility limit works as designed:** carry's book was not cut when a variance-adding agent joined.
 4. **A hypothesis can have a significantly positive pooled signal slope and still fail the gate.** The slope t-statistic is not a trading result: sizing, costs and volatility timing decide it. The gate used P&L, as designed.
@@ -69,8 +69,50 @@ Admission (a) FAILS (the lower bound is above 0 on none of three bars), admissio
 **Correction.** The engine now enforces an agent's universe (an agent can only hold the coins in its card). H2 is re-run with that enforced, with the SAME gates, the same card (magnitude 0.05) and no other change. The first results are kept as 015a (unrestricted, as run) and the corrected ones are 015b; both count as trials. The verdict of 015a stands for H2 as it was implemented then; the card-compliant verdict is 015b's.
 **Card check on the final solver.** The mechanical check that set the magnitude was repeated on the final solver and does not move: ex-ante annual Sharpe 1.17 at the first value tried (0.10, gross 0.77) and 0.59 at the value used (0.05, gross 0.63) on 1d. Note that the card magnitude is a per-period IC, so the annual ex-ante Sharpe at the same value rises as the holding period shortens (0.59 on 1d, 0.90 on 4h, 1.32 on 1h): the card is not horizon-neutral, a known gap for any time-series agent compared across bar sizes.
 
+## Results of 015b (card universe enforced: H2 holds BTC and ETH only; tables in `data/015/comparison_restricted.csv`)
+Exactly as Amendment 1 said: same card (0.05), same gates, same bars, one run each, no other change. Commands: `uv run python run_benchmark.py --bar B --agents TSMomentum [RankCarry TSMomentum] --tag B_broad_<agents>_restricted --boot 500` for B in 1d, 4h, 1h, then `uv run python compare_runs.py --suffix _restricted`.
+
+**Verdict by the pre-registered rules: H2 is admitted (both admission tests pass) and the market of two beats carry alone on all three bar sizes.** Read the caveats below before relying on it.
+
+| Bar | Run | Net Sharpe | 90% interval | CAGR | Vol | Max drawdown |
+|---|---|---|---|---|---|---|
+| 1d | carry alone | 1.26 | | 18.9% | 14.6% | -16.0% |
+| 1d | H2 alone | 1.06 | 0.37 to 1.75 | 12.4% | 11.7% | -12.2% |
+| 1d | carry + H2 | **1.59** | 0.92 to 2.30 | 21.9% | 12.9% | -13.8% |
+| 4h | carry alone | 1.15 | | 15.3% | 13.2% | -22.3% |
+| 4h | H2 alone | 0.95 | 0.28 to 1.60 | 10.9% | 11.5% | -16.3% |
+| 4h | carry + H2 | **1.62** | 0.92 to 2.33 | 19.5% | 11.4% | -14.2% |
+| 1h | carry alone | 1.00 | | 13.2% | 13.3% | -20.6% |
+| 1h | H2 alone | 0.90 | 0.17 to 1.64 | 10.7% | 12.1% | -18.3% |
+| 1h | carry + H2 | **1.57** | 0.83 to 2.25 | 18.0% | 10.9% | -14.1% |
+
+**H2 admission (annualised intercept, 90% block-bootstrap interval):**
+| Bar | beta to BTC | alpha vs BTC | interval | alpha vs BTC and carry | interval |
+|---|---|---|---|---|---|
+| 1d | 0.05 | +9.3% | +1.7% to +16.4% | +8.5% | +0.8% to +16.0% |
+| 4h | 0.04 | +8.4% | +0.8% to +16.4% | +8.0% | +0.3% to +16.0% |
+| 1h | 0.04 | +8.5% | -0.5% to +17.1% | +8.4% | -0.5% to +17.0% |
+(a) PASSES (lower bound above 0 on two of three bars, 1d and 4h), (b) PASSES (same two). On 1h the lower bounds are just below zero, so the rule is met with no margin to spare.
+
+**Market acceptance (carry + H2 minus carry alone, paired Sharpe difference, 90% interval):** 1d +0.34 (+0.10 to +0.59), 4h +0.47 (+0.13 to +0.81), 1h +0.57 (+0.18 to +0.93). PASS (lower bound above 0 on all three).
+
+**Reported, not gated.**
+- **The book is now the card's book:** H2 alone has mean gross 0.26 / 0.31 / 0.33 of equity (1d / 4h / 1h), realised volatility 11.7% / 11.5% / 12.1% (inside the 20% limit; the 33-39% of 015a was the alt hedge), net exposure 0.04, beta to BTC 0.04-0.05. Costs are small (0.3-0.5% a year; turnover 7-10).
+- **The market no longer cuts H2 to the floor:** final wealth shares of H2 are 35% (1d), 41% (4h), 54% (1h); carry's share is 65% / 59% / 46%. Account P&L on 1d: carry 0.260, H2 0.099 a year (initial equity). Carry's gross is 1.69 / 1.69 / 1.72 with H2, as in the other runs; the priced volatility limit was binding at 85% / 91% / 96% of rebalances.
+- **Yearly net returns (1d):** H2 alone 2020 +16.9% (partial year), 2021 +18.3%, 2022 -5.4%, 2023 +17.9%, 2024 +10.4%, 2025 +12.1%; carry + H2 +29.9%, +38.0%, +5.9%, +25.4%, +8.1%, +15.8%. On 4h H2 alone earned +17.1% and +23.4% in 2020-21 and 2.2-7.8% afterwards; on 1h 12.8% and 26.4% in 2020-21 and 0-12.8% afterwards. Most of H2's return is in 2020-2021.
+- **Skill:** the pooled slope of returns on H2's signal is positive (t = 3.4 on 1d, 3.4 on 4h, 4.1 on 1h; overlapping observations on two correlated coins, so these overstate the evidence).
+- **Solver:** cells that hit the iteration cap in the H2 runs: 0 (1d), 1 (4h), 15 (1h) for H2 alone; 0 (1d), 0 (4h), 2 (1h) for carry + H2. Their relative residual was not recorded (see 015a).
+
+**Caveats, none of which change the pre-registered verdict.**
+1. **This is a forking path.** 015a failed, then the universe was corrected after seeing why. The correction is a fidelity fix to the written card, and it was recorded before the 015b runs, but both runs are trials and a reader should discount accordingly. The deflated Sharpe uses both.
+2. **Two coins, six years, one bull-then-range market.** H2 is BTC and ETH trend; 2020-21 supplies most of the return, and 2022 is flat to negative. A rule-passing result on this sample is not evidence of a durable edge, and the BTC-beta intercept test is the only guard against pure long exposure (beta is near zero here, so the book is not long-biased on average).
+3. **The 1h alpha lower bounds are below zero**; admission rests on 1d and 4h, which are the same data at coarser sampling and are not independent evidence.
+4. **The card magnitude (0.05) is an assumption** and is not horizon-neutral (ex-ante Sharpe 0.30 / 0.47 / 0.70 at the engine's actual gross on 1d / 4h / 1h); the Sharpe of H2 alone is similar across bars (1.06 / 0.95 / 0.90).
+5. **Why the mix beats both alone was not tested.** The likely reason is diversification (H2's beta to BTC is 0.04-0.05 and its correlation with carry was not measured here), which is an explanation, not a result; the gain says nothing about H2's Sharpe in future.
+6. Timing inside H2's belief was not run (only for admitted agents, next step).
+
 ## Not done
-Timing inside H2's belief (the plan runs a timed against an untimed twin only for agents that pass admission); other hypotheses (cross-sectional momentum, reversal by liquidity bucket, illiquidity, low volatility, CTREND-style trend); the carry ladder's later rungs; the holdout is untouched.
+Timing inside H2's belief (H2 is now admitted, so the timed-against-untimed twin is the next step); other hypotheses (cross-sectional momentum, reversal by liquidity bucket, illiquidity, low volatility, CTREND-style trend); the carry ladder's later rungs; the holdout is untouched.
 
 ## Changes to rules and process notes (disclosed)
 - **The batch was run three times.** The first attempt crashed on the time-series agent in the report (no IC list) after printing its headline; the second was stopped because the 4h runs of H2 were taking over an hour (solver speed, below); the third, on the final solver, is the one reported. Because each aborted attempt finished or half-finished some runs, the trial log (`results/trials.jsonl`, not committed) contains earlier "015" entries for 1d carry alone and for runs that were then repeated with identical settings; for the deflated Sharpe they count once each, not three times.
