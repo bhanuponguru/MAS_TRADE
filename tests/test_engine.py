@@ -117,3 +117,29 @@ def test_an_agent_only_holds_the_coins_of_its_card():
     allowed = {P.tickers.index(t) for t in TimeSeriesMomentum.universe if t in P.tickers}   # the synthetic panel has BTC only
     held = {int(j) for jj, x in res.targets for j, v in zip(jj, x[0]) if abs(v) > 1e-9}
     assert held and held <= allowed                              # no hedge positions in other coins
+
+
+def test_reversal_signal_is_long_the_residual_losers_and_ignores_the_market_move():
+    from mas_trade.agents.base import Ctx
+    from mas_trade.agents.reversal import RankReversal
+    rng = np.random.default_rng(1)
+    T, n = 60, 6
+    btc = rng.normal(0, 0.03, T)
+    R = 1.0 * btc[:, None] + rng.normal(0, 0.01, (T, n))
+    R[-7:, 0] -= 0.02                                       # coin 0 fell on its own over the last week
+    R[-7:, 1] += 0.02                                       # coin 1 rose on its own
+    ctx = Ctx(R, np.zeros((T, n)), np.ones((T, n)), btc, [f"C{i}" for i in range(n)], 1, np.full(n, 0.05))
+    s = RankReversal().signal(ctx)
+    assert s.argmax() == 0 and s.argmin() == 1
+    ctx.R[-7:] += 0.05 * ctx.btc[-7:, None]                 # a market move that every coin shares changes nothing important
+    assert RankReversal().signal(ctx).argmax() == 0
+
+
+def test_reversal_agent_runs_in_the_engine_and_reports_its_liquidity_diagnostic():
+    from mas_trade.agents.reversal import RankReversal
+    P = make_panel_synth(n=300, N=24, seed=3)
+    a = RankReversal()
+    res = run_engine(P, [a], CFG)
+    assert np.isfinite(res.net).all() and len(a.ics) > 10
+    d = a.liquidity_summary()
+    assert len(d) == 3 and all(np.isfinite(v) for v in d.values())
