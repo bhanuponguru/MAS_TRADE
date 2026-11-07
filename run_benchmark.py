@@ -49,7 +49,7 @@ ann = bars.mean() * cfg.ppy
 print("\nabsolute performance (net of fees, impact and funding):")
 print(pd.Series({**{k: st[k] for k in ("CAGR", "Vol", "Sharpe", "MaxDD", "Sortino", "Calmar")}, "Sharpe5%": lo, "Sharpe95%": hi,
                  "Turnover": res.turnover, "netExp": res.exposure.mean(), "gross": res.gross.mean(),
-                 "cells not converged": res.unconverged}).round(3).to_string())
+                 "cells not converged": res.unconverged, "worst unconverged residual": max(res.residuals, default=0.0)}).round(3).to_string())
 print("\nannualised P&L components:")
 print(ann.drop("net").round(4).to_string(), "\n(sum", round(float(ann[["market", "selection", "funding", "cost"]].sum()), 4), ")")
 acc = pd.DataFrame(res.account, index=res.dates, columns=res.names)

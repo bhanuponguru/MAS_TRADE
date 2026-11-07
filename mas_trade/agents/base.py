@@ -1,11 +1,12 @@
-"""The agent interface and a rank-signal agent calibrated by its own realised IC.
+"""The agent interface and a rank-signal agent whose belief scale comes from its hypothesis card.
 
 An agent sees only information before the decision bar (a Ctx for the tradable coins) and returns a belief: the expected
-net return of a unit position in each coin over the holding period. A belief is mu = IC_hat x sigma_H x z (Grinold).
-IC_hat is the posterior mean of the agent's rank-IC: the EWMA of its own realised ICs, shrunk toward the PRIOR OF ITS
-HYPOTHESIS CARD (a small IC of the card's sign, `ic_prior_mean`, worth `ic_prior` pseudo-observations), and clipped to the
-card's sign: a hypothesis does not silently flip into its opposite on a bad stretch (a sustained wrong sign is a kill
-criterion for the card, handled by permission and wealth), it goes quiet. Nothing is initialised randomly.
+net return of a unit position in each coin over the holding period, mu = IC x sigma_H x z (Grinold). For an established
+hypothesis the IC is the CARD's: a small number of the card's predicted sign (`ic_prior_mean`). Evidence does not rescale it
+(a trailing IC is too noisy to size bets by: its sign flipped half the time on carry); it can only switch the agent off, by a
+separate pre-registered kill rule: when the expanding-window mean IC, in the card's sign, has a t-statistic below
+`kill_t` (after `kill_min_obs` periods) the agent goes quiet (belief 0), it never bets the opposite. Relative stakes between
+agents are then set by wealth, not by noisy IC estimates. Nothing is initialised randomly.
 """
 from dataclasses import dataclass
 
@@ -38,24 +39,26 @@ def rank_gauss(s):
 class RankAgent:
     """Subclasses implement signal(ctx) -> (n,) with higher = expected to do better."""
     name = "rank"
-
     sign = 1                      # predicted sign of the IC (hypothesis card)
-    ic_prior_mean = 0.02          # magnitude of the card's prior IC
+    ic_prior_mean = 0.02          # magnitude of the card's IC
+    kill_t = -2.0                 # kill rule: t-stat of the expanding mean IC (in the card's sign) below this
+    kill_min_obs = 20             # ... after this many periods
 
-    def __init__(self, ic_halflife=12.0, ic_prior=50.0):
-        self.lam = 0.5 ** (1.0 / ic_halflife)
-        self.prior = ic_prior
+    def __init__(self):
         self.ics = []
         self.last = None            # (tickers, z) of the previous decision
 
     def signal(self, ctx):
         raise NotImplementedError
 
+    def killed(self):
+        x = self.sign * np.array(self.ics)
+        if len(x) < self.kill_min_obs or x.std(ddof=1) == 0:
+            return False
+        return bool(x.mean() / (x.std(ddof=1) / np.sqrt(len(x))) < self.kill_t)
+
     def ic_hat(self):
-        x = np.array(self.ics)
-        w = self.lam ** np.arange(len(x) - 1, -1, -1)
-        post = ((x * w).sum() + self.prior * self.sign * self.ic_prior_mean) / (w.sum() + self.prior)
-        return float(max(self.sign * post, 0.0) * self.sign)
+        return 0.0 if self.killed() else self.sign * self.ic_prior_mean
 
     def belief(self, ctx):
         z = rank_gauss(self.signal(ctx))

@@ -32,6 +32,7 @@ class EngineResult:
     targets: list = field(default_factory=list)   # per rebalance: (coin indices, (M, n_k) positions)
     iters: list = field(default_factory=list)
     unconverged: int = 0
+    residuals: list = field(default_factory=list)   # max(primal, dual) residual of every unconverged solve
     turnover: float = 0.0               # annual sum |trade| / equity
     names: list = field(default_factory=list)
 
@@ -117,6 +118,8 @@ def run_engine(P, agents, cfg, solver=None, end=None):
             sol = solve_cells(p, **(solver or {}))
         res.iters.append(sol.iters)
         res.unconverged += not sol.converged
+        if not sol.converged:
+            res.residuals.append(max(sol.primal_res, sol.dual_res))
         x = sol.x
         c_agent, c_total = allocate_cost(held[:, jj], x, p.fee, kappa)
         turn += np.abs(x.sum(0) - held[:, jj].sum(0)).sum()

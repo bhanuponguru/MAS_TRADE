@@ -2,7 +2,7 @@
 
 A multi-agent trading system for Binance USD-M perpetual futures, built from the AI3403 Multi-Agent Systems course material in `references/` (consensus, ADMM, distributed learning, temporal logic). Judged in absolute terms (net Sharpe against zero, P&L decomposition), never against holding BTC.
 
-**Status: rebuild in progress** (branch `engine-rebuild`). The data layer, cost model, risk helpers, diagnostics and STL operators are in place; the market, the ADMM cells and the hypothesis agents are specified in [decisions 0033-0036](docs/decisions/) and not yet built.
+**Status: rebuild in progress** (branch `engine-rebuild`). Built and validated: the data pipeline (extended Binance dataset), the cost model, the joint ADMM over (agent, coin) cells, the wealth-staked market and model averaging, STL specs and timing (checked on simulated data, [experiment 012](docs/experiments/012-mas-levels-on-simulated-data.md)), and the real-data engine with the carry agent (net Sharpe 1.27 / 1.12 / 1.00 on 1d / 4h / 1h in the development period, [experiment 013](docs/experiments/013-carry-baseline-on-real-data.md)). Next: the carry ladder and the other hypothesis agents. The final 12 months are sealed and untouched.
 
 ## Design in one page
 - **Agents = hypotheses.** Each agent runs one established quantitative hypothesis (carry, time-series momentum, short-term reversal, ...) as a full trading engine: its own forecast ("belief": expected net return per coin from a model fitted walk-forward on past data), decay estimate, risk/capacity model and execution.
@@ -15,7 +15,8 @@ A multi-agent trading system for Binance USD-M perpetual futures, built from the
 ```
 uv sync
 uv run pytest
-uv run python download_data.py [--bars 1d 4h 1h] [--top 50]   # Binance public dumps -> data/crypto/ (gitignored)
+uv run python download_data.py [--bars 1d 4h 1h] [--top 50] [--datasets klines funding premium metrics spot]   # Binance public dumps -> data/crypto/ (gitignored)
+uv run python run_benchmark.py --bar 1d   # the engine on real data, development period only
 ```
 
 ## History
