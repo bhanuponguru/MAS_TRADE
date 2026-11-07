@@ -35,3 +35,57 @@ class TimeSeriesMomentum(TimeSeriesAgent):
         L = ctx.bars(self.days)
         r = ctx.R[-L:, pick]
         return r.sum(0) / (np.maximum(r.std(0), 1e-12) * np.sqrt(L))      # the t-statistic of the trailing return
+
+
+class TimedMomentum(TimeSeriesMomentum):
+    """H2 with timing inside the belief (decision 0039): the card's IC moves with two mechanism-based states, estimated walk-forward.
+
+    IC(state) = IC0 + c . s, clipped to [0, 2 IC0]; s = (bull, panic), standardised on past states only:
+    - bull: t-statistic of BTC's return over the history window (momentum is concentrated in bull markets: Han, Kang, Ryu);
+      predicted coefficient >= 0;
+    - panic: log of BTC's 30-day volatility over its window volatility (momentum crashes follow high-volatility rebounds:
+      Daniel and Moskowitz); predicted coefficient <= 0.
+    c is a ridge regression of each past period's skill y_t (the slope of the
+    volatility-standardised returns on z) on the standardised states, with the Bayesian prior c ~ N(0, tau^2), tau = IC0 / 2 (a one
+    standard deviation move of a state shifts the skill by at most about half the card): lam = var(y) / tau^2 pseudo-periods.
+    A coefficient of the wrong predicted sign is set to zero. Until
+    `min_obs` periods have been seen the belief is the untimed card's. The kill rule is unchanged."""
+    name = "TSMomentumTimed"
+    min_obs = 30
+
+    def __init__(self, days=30.0):
+        super().__init__(days)
+        self.ys, self.ss, self._pending = [], [], None
+
+    def state(self, ctx):
+        b = ctx.btc
+        L = len(b)
+        bull = b.sum() / (max(b.std(), 1e-12) * np.sqrt(L))
+        panic = np.log(max(b[-ctx.bars(self.days):].std(), 1e-12) / max(b.std(), 1e-12))
+        return np.array([bull, panic])
+
+    def timed_ic(self, s_now):
+        ic0 = self.sign * self.ic_prior_mean
+        if len(self.ys) < self.min_obs:
+            return ic0
+        S, y = np.array(self.ss), np.array(self.ys)
+        m, sd = S.mean(0), np.maximum(S.std(0), 1e-12)
+        Z = (S - m) / sd
+        lam = y.var() / (0.5 * ic0) ** 2
+        c = np.linalg.solve(Z.T @ Z + lam * np.eye(2), Z.T @ (y - y.mean()))
+        c = np.array([max(c[0], 0.0), min(c[1], 0.0)])
+        return float(np.clip(ic0 + c @ ((s_now - m) / sd), 0.0, 2.0 * ic0))
+
+    def belief(self, ctx):
+        mu = super().belief(ctx)                       # untimed card belief (sets self.last = (tickers, z))
+        s = self.state(ctx)
+        self._pending = (ctx.sigma_h.copy(), s)
+        return mu * (0.0 if self.killed() else self.timed_ic(s) / self.ic_prior_mean)
+
+    def record(self, z, f):
+        sig, s = self._pending
+        ok = np.isfinite(f) & (z != 0)
+        if ok.any():
+            self.ys.append(float((z[ok] * f[ok] / sig[ok]).sum() / (z[ok] ** 2).sum()))
+            self.ss.append(s)
+        super().record(z, f)
