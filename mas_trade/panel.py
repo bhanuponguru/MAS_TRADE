@@ -18,23 +18,31 @@ class Panel:
     dates: pd.DatetimeIndex
     tickers: list
     bpd: int
+    prem: np.ndarray = None    # (n * hpb, N) hourly premium index (NaN where missing); the value at hour h is known at its end
 
     @property
     def ppy(self):
         return 365.0 * self.bpd
 
+    @property
+    def hpb(self):
+        """Hours per bar."""
+        return 24 // self.bpd
 
-def make_panel(rets, elig, fund, vol, btc, bpd):
+
+def make_panel(rets, elig, fund, vol, btc, bpd, prem=None):
     raw = rets.values
     valid = ~np.isnan(raw)
     N = lambda df: np.nan_to_num(df.reindex_like(rets).values)
     b = np.zeros(len(rets)) if btc is None else np.nan_to_num(btc.reindex(rets.index).values)
     return Panel(np.where(valid, raw, 0.0), valid, elig.reindex_like(rets).fillna(False).values.astype(bool),
-                 N(fund), N(vol), b, rets.index, list(rets.columns), bpd)
+                 N(fund), N(vol), b, rets.index, list(rets.columns), bpd,
+                 None if prem is None else prem.reindex(columns=rets.columns).values.astype("float32"))
 
 
-def load_crypto_panel(bar, universe="broad"):
+def load_crypto_panel(bar, universe="broad", with_premium=False):
     uni = cd.load_universe(universe)
     rets, elig, fund, btc = cd.load_panel(bar, universe=uni)
     vol = cd._read(cd.crypto_dir(), bar, list(rets.columns), "quote_volume")
-    return make_panel(rets, elig, fund, vol, btc, {"1d": 1, "4h": 6, "1h": 24, "15m": 96, "5m": 288}[bar])
+    prem = cd.load_premium(list(rets.columns), rets.index, bar) if with_premium else None
+    return make_panel(rets, elig, fund, vol, btc, {"1d": 1, "4h": 6, "1h": 24, "15m": 96, "5m": 288}[bar], prem)

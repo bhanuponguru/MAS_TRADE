@@ -222,3 +222,14 @@ def test_coverage_report_counts_symbols_and_dates(tmp_path):
     rep = cd.coverage_report(tmp_path)
     assert rep.loc["1h", "symbols"] == 1 and rep.loc["funding", "symbols"] == 0
     assert str(rep.loc["1h", "first_median"]) == "2022-01-01"
+
+
+def test_premium_loader_aligns_hourly_values_to_the_bar_grid(tmp_path):
+    d = tmp_path / "premium" / "1h"
+    d.mkdir(parents=True)
+    idx = pd.date_range("2022-01-01", periods=72, freq="h", tz="UTC")
+    pd.DataFrame({"close": np.arange(72, dtype=float)}, index=idx).to_parquet(d / "AUSDT.parquet")
+    dates = pd.date_range("2022-01-01", periods=3, freq="D", tz="UTC")
+    prem = cd.load_premium(["AUSDT", "BUSDT"], dates, "1d", root=tmp_path)
+    assert len(prem) == 72 and prem["AUSDT"].iloc[30] == 30.0 and prem["BUSDT"].isna().all()
+    assert str(prem.dtypes["AUSDT"]) == "float32"

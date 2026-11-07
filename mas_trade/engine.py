@@ -37,12 +37,22 @@ class EngineResult:
     names: list = field(default_factory=list)
 
 
+def tradable(P, cfg, t):
+    """Tradable coins at rebalance bar t (information before t only): in the point-in-time universe, a full valid history
+    window and enough trailing dollar volume. Returns (indices, trailing daily dollar volume of every coin)."""
+    bpd = P.bpd
+    Tb, adv_b = int(round(cfg.hist_days * bpd)), int(round(cfg.adv_days * bpd))
+    adv = np.median(P.V[t - adv_b:t], axis=0) * bpd
+    el = P.E[t] & P.valid[t - Tb:t].all(0) & (adv >= cfg.min_adv)
+    return np.flatnonzero(el), adv
+
+
 def run_engine(P, agents, cfg, solver=None, end=None):
     n, N = P.R.shape
     n = n if end is None else end
     bpd, H = P.bpd, cfg.rebal_bars
     Tb = int(round(cfg.hist_days * bpd))
-    cov_b, beta_b, adv_b = (int(round(d * bpd)) for d in (cfg.cov_days, cfg.beta_days, cfg.adv_days))
+    cov_b, beta_b = (int(round(d * bpd)) for d in (cfg.cov_days, cfg.beta_days))
     burn = int(round(cfg.burn_days * bpd))
     M = len(agents)
     rebal = np.arange(Tb, n - 1, H)
@@ -64,9 +74,7 @@ def run_engine(P, agents, cfg, solver=None, end=None):
             for ag in agents:
                 ag.observe({P.tickers[j]: fwd[j] for j in range(N)})
         prev_t = t
-        adv = np.median(P.V[t - adv_b:t], axis=0) * bpd
-        el = P.E[t] & P.valid[t - Tb:t].all(0) & (adv >= cfg.min_adv)
-        ii = np.flatnonzero(el)
+        ii, adv = tradable(P, cfg, t)
         if len(ii) < cfg.min_assets:
             trading = False
         else:
