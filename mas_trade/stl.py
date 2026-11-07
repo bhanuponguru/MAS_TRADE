@@ -130,3 +130,16 @@ def calibration_slope(beliefs, returns):
     """Slope of realised returns on the beliefs held before them (1 = calibrated, below 1 = over-confident)."""
     b, r = np.ravel(beliefs), np.ravel(returns)
     return float(b @ r / max(b @ b, 1e-300))
+
+
+def calibration_ucb(beliefs, returns, z=1.645):
+    """Calibration slope of realised returns on the beliefs held before them, its standard error, and the upper confidence
+    bound slope + z se. The spec acts on the UPPER bound: an agent is only treated as over-confident when even the optimistic
+    end of its slope is below the floor. With beliefs as small as a card's (about 0.002) and returns of 15%, a slope over 3,000
+    observations has a standard error above 1, so a point estimate would fire by noise."""
+    b, r = np.ravel(beliefs), np.ravel(returns)
+    sbb = max(float(b @ b), 1e-300)
+    slope = float(b @ r) / sbb
+    resid = float(((r - slope * b) ** 2).sum()) / max(len(b) - 1, 1)
+    se = float(np.sqrt(resid / sbb))
+    return slope, se, slope + z * se

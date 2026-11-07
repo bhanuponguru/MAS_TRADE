@@ -30,7 +30,12 @@ class EngineConfig:
     gross: float = 3.0          # system gross cap, multiple of equity
     participation: float = 0.05  # capacity: a position may be at most this share of a coin's daily volume
     wealth_floor: float = 0.02  # minimum wealth share of an agent (a liveness device)
-    target_vol: float = 0.20    # system volatility limit (annual), enforced through the risk aversion of the joint problem
+    target_vol: float = 0.20    # system volatility limit (annual): a priced variance term in the joint problem
+    beta_band: float = 0.25     # system net BTC-beta exposure within +-this multiple of equity (a priced constraint)
+    belief_bound_k: float = 6.0  # sanity spec: |belief| within this many robust standard deviations of the agent's past beliefs
+    calibration_floor: float = 0.5   # agent spec: slope of realised returns on its beliefs at least this; the margin scales its Kelly fraction
+    calibration_window: int = 52     # rebalances of past beliefs behind the slope
+    calibration_min_obs: int = 1500  # (period, coin) observations needed before the spec acts
 
     @property
     def ppy(self):

@@ -48,3 +48,14 @@ def test_trial_log_roundtrip(tmp_path):
     t = read_trials(p)
     assert list(t["name"]) == ["a", "b"] and "time" in t
     assert read_trials(tmp_path / "none.jsonl").empty
+
+
+def test_block_bootstrap_regression_recovers_alpha_and_beta():
+    from mas_trade.metrics import block_bootstrap_regression
+    rng = np.random.default_rng(0)
+    x = rng.normal(0, 0.03, 1500)
+    y = 0.001 + 0.7 * x + rng.normal(0, 0.01, 1500)
+    out = block_bootstrap_regression(y, pd.DataFrame({"btc": x}), block=7, n_boot=400)
+    assert abs(out.loc["btc", "coef"] - 0.7) < 0.05 and out.loc["intercept", "5%"] > 0
+    flat = block_bootstrap_regression(0.7 * x + rng.normal(0, 0.01, 1500), pd.DataFrame({"btc": x}), block=7, n_boot=400)
+    assert flat.loc["intercept", "5%"] < 0 < flat.loc["intercept", "95%"]

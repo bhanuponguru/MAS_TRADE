@@ -31,6 +31,7 @@ Each experiment tests one question behind a decision in [../decisions/](../decis
 | [012](012-mas-levels-on-simulated-data.md) | 2026-11-06 | Do both MAS levels behave as designed on simulated data? | 0033, 0035, 0036 | Phase 1 done: all criteria pass except L1-2 with a wealth floor (selection against over-confidence is unreliable and an unlimited over-confident agent can wipe out the system); A2 restated |
 | [013](013-carry-baseline-on-real-data.md) | 2026-11-07 | Does the engine reproduce the legacy carry result on real data? | 0033, 0038 | Yes: net Sharpe 1.27 / 1.12 / 1.00 (1d / 4h / 1h) after fixing belief calibration and the volatility limit; first run 0.48 |
 | [014](014-carry-ladder.md) | 2026-11-07 | Does each rung of the carry ladder improve the net dev result beyond noise? | 0034, 0038 | R1 (funding forecast from the premium) rejected at its mechanical gate: worse than the trailing mean at 1d and 4h, not significantly better at 1h; R2 and R3 not run |
+| [015](015-time-series-momentum-and-the-market.md) | 2026-11-07 | Does time-series momentum add to carry, and does a market of the two beat carry alone? | 0033, 0034, 0036 | rules written, runs in progress |
 
 Experiments 001–005 were re-run on 2026-11-05 to recover numbers (the original outputs were not saved). 006–007 quote what was written at the time (v2 is frozen, decision 0022).
 

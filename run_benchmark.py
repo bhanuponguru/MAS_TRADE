@@ -12,13 +12,14 @@ import numpy as np
 import pandas as pd
 
 from mas_trade.agents.carry import RankCarry
+from mas_trade.agents.momentum import TimeSeriesMomentum
 from mas_trade.config import EngineConfig
 from mas_trade.diagnostics import ic_summary, log_trial
 from mas_trade.engine import run_engine
 from mas_trade.metrics import block_bootstrap_sharpe, extended_stats, yearly_returns
 from mas_trade.panel import load_crypto_panel
 
-AGENTS = {"RankCarry": RankCarry}
+AGENTS = {"RankCarry": RankCarry, "TSMomentum": TimeSeriesMomentum}
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--bar", default="1d", choices=["1d", "4h", "1h"])
@@ -27,6 +28,7 @@ ap.add_argument("--agents", nargs="+", default=["RankCarry"], choices=list(AGENT
 ap.add_argument("--unseal", action="store_true")
 ap.add_argument("--boot", type=int, default=1000)
 ap.add_argument("--label", default=None, help="name of this variant in the trial log")
+ap.add_argument("--tag", default=None, help="output folder name under results/ (default: bar_universe_agents)")
 args = ap.parse_args()
 
 cfg = EngineConfig.for_tier(args.bar)
@@ -53,16 +55,21 @@ print(pd.Series({**{k: st[k] for k in ("CAGR", "Vol", "Sharpe", "MaxDD", "Sortin
 print("\nannualised P&L components:")
 print(ann.drop("net").round(4).to_string(), "\n(sum", round(float(ann[["market", "selection", "funding", "cost"]].sum()), 4), ")")
 acc = pd.DataFrame(res.account, index=res.dates, columns=res.names)
-print("\nper-agent account P&L (annualised, units of initial equity) and final wealth share:")
-print(pd.DataFrame({"pnl": acc.mean() * cfg.ppy, "wealth share": res.wealth[-1] / res.wealth[-1].sum()}).round(4).to_string())
+equity_prev = 1.0 + np.r_[0.0, np.cumsum(acc.sum(1).values)[:-1]]
+acc_ret = acc.div(equity_prev, axis=0)                          # each account's return on system equity (they add up to net)
+print("\nper-agent account P&L (annualised, units of initial equity), ex-ante Sharpe at its belief, mean gross, final wealth share:")
+print(pd.DataFrame({"pnl": acc.mean() * cfg.ppy, "ex-ante Sharpe": np.mean(res.exante, axis=0), "gross": np.mean(res.agent_gross, axis=0),
+                    "wealth share": res.wealth[-1] / res.wealth[-1].sum()}).round(3).to_string())
+print(f"specs: coin beliefs zeroed by the sanity spec {res.sanitized}; calibration multiplier min {np.min(res.kelly_scales):.2f}; "
+      f"volatility limit binding at {np.mean(np.array(res.vol_price) > 0):.0%} of rebalances")
 print("\nrealised rank-IC of each agent's score against the return that followed (dev):")
 print(pd.DataFrame({a.name: ic_summary(a.ics) for a in agents}).T.round(3).to_string())
 print("\nyearly returns:")
 print(yearly_returns(net.to_frame("net")).round(3).to_string())
 
-out = Path("results") / f"{args.bar}_{args.universe}"
+out = Path("results") / (args.tag or f"{args.bar}_{args.universe}_{'+'.join(args.agents)}")
 out.mkdir(parents=True, exist_ok=True)
-bars.to_csv(out / "bars.csv")
+bars.assign(btc=btc, **{f"acc_{c}": acc_ret[c] for c in acc_ret}).to_csv(out / "bars.csv")
 log_trial(Path("results/trials.jsonl"), bar=args.bar, universe=args.universe, name=args.label or "+".join(args.agents),
           sharpe_ann=st["Sharpe"], bars=len(net), unsealed=args.unseal)
 print(f"\nwritten to {out}/")

@@ -77,15 +77,16 @@ def apply_floor(w, floor):
 
 
 def _calibration_scale(beliefs, R, t, cfg):
-    """Per-agent Kelly multiplier from the calibration spec (slope of past returns on the agent's past beliefs >= floor)."""
+    """Per-agent Kelly multiplier from the calibration spec (the upper confidence bound of the slope of past returns on the
+    agent's past beliefs stays above the floor)."""
     M = beliefs.shape[0]
     if cfg.calibration_floor is None:
         return np.ones(M)
     lo = max(0, t - cfg.calibration_window)
     if (t - lo) * R.shape[1] < cfg.calibration_min_obs:
         return np.ones(M)
-    slopes = np.array([stl.calibration_slope(beliefs[i, lo:t], R[lo:t]) for i in range(M)])
-    return stl.kelly_scale(stl.ge(slopes, cfg.calibration_floor))
+    ucb = np.array([stl.calibration_ucb(beliefs[i, lo:t], R[lo:t])[2] for i in range(M)])
+    return stl.kelly_scale(stl.ge(ucb, cfg.calibration_floor))
 
 
 def run_market(R, beliefs, d, B, F, cfg, w0=None, funding=None):

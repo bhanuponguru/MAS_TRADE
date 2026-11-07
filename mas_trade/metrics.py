@@ -75,3 +75,24 @@ def split_holdout(df, months):
 def yearly_returns(df):
     """Compounded return per calendar year per column."""
     return (1 + df).groupby(df.index.year).prod() - 1
+
+
+def block_bootstrap_regression(y, X, block, n_boot=2000, seed=0):
+    """OLS of y (T,) on the columns of X (T, k) with an intercept, and moving-block bootstrap 5th / 95th percentiles of every
+    coefficient (rows are resampled in blocks, so serial dependence is kept). Returns a DataFrame indexed by
+    intercept and the columns of X; the intercept is per bar."""
+    X = pd.DataFrame(X) if not isinstance(X, pd.DataFrame) else X
+    df = pd.concat([pd.Series(y, name="y").reset_index(drop=True), X.reset_index(drop=True)], axis=1).dropna()
+    yv, Z = df["y"].values, np.column_stack([np.ones(len(df)), df.drop(columns="y").values])
+    names = ["intercept"] + [str(c) for c in X.columns]
+    coef = np.linalg.lstsq(Z, yv, rcond=None)[0]
+    n = len(df)
+    block = int(min(max(block, 1), n))
+    rng = np.random.default_rng(seed)
+    nb = -(-n // block)
+    draws = []
+    for _ in range(n_boot):
+        idx = (rng.integers(0, n - block + 1, nb)[:, None] + np.arange(block)).ravel()[:n]
+        draws.append(np.linalg.lstsq(Z[idx], yv[idx], rcond=None)[0])
+    d = np.array(draws)
+    return pd.DataFrame({"coef": coef, "5%": np.percentile(d, 5, axis=0), "95%": np.percentile(d, 95, axis=0)}, index=names)

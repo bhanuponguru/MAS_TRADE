@@ -36,20 +36,64 @@ def rank_gauss(s):
     return norm.ppf((r + 0.5) / len(s))
 
 
-class RankAgent:
-    """Subclasses implement signal(ctx) -> (n,) with higher = expected to do better."""
-    name = "rank"
-    sign = 1                      # predicted sign of the IC (hypothesis card)
-    ic_prior_mean = 0.02          # magnitude of the card's IC
-    kill_t = -2.0                 # kill rule: t-stat of the expanding mean IC (in the card's sign) below this
+class SignalAgent:
+    """A hypothesis whose belief is mu = sign x ic_prior_mean x sigma_H x z, z a standardised signal (see the module docstring).
+    Subclasses define signal(ctx), transform(raw) -> z, and the kill rule's statistic."""
+    name = "signal"
+    sign = 1                      # predicted sign of the skill (hypothesis card)
+    ic_prior_mean = 0.02          # magnitude of the card's skill, with its source recorded in the card
+    kill_t = -2.0                 # kill rule: t-statistic below this (in the card's sign) switches the agent off
     kill_min_obs = 20             # ... after this many periods
+    neutral = True                # dollar- and beta-neutral book (False for an agent that owns net exposure)
 
     def __init__(self):
-        self.ics = []
         self.last = None            # (tickers, z) of the previous decision
 
     def signal(self, ctx):
         raise NotImplementedError
+
+    def transform(self, raw):
+        raise NotImplementedError
+
+    def killed(self):
+        raise NotImplementedError
+
+    def ic_hat(self):
+        return 0.0 if self.killed() else self.sign * self.ic_prior_mean
+
+    def belief(self, ctx):
+        z = self.transform(self.signal(ctx))
+        self.last = (list(ctx.tickers), z)
+        return self.ic_hat() * ctx.sigma_h * z
+
+    def record(self, z, f):
+        raise NotImplementedError
+
+    def observe(self, fwd):
+        """fwd: {ticker: realised return over the period that followed the last decision}."""
+        if self.last is None:
+            return
+        tick, z = self.last
+        self.record(z, np.array([fwd.get(t, np.nan) for t in tick]))
+        self.last = None
+
+
+class RankAgent(SignalAgent):
+    """Cross-sectional hypothesis: z is the rank-gauss of the signal; skill is the per-period rank IC, and the kill rule uses
+    the t-statistic of its expanding mean."""
+    name = "rank"
+
+    def __init__(self):
+        super().__init__()
+        self.ics = []
+
+    def transform(self, raw):
+        return rank_gauss(raw)
+
+    def record(self, z, f):
+        ic = rank_ic(z, f)
+        if np.isfinite(ic):
+            self.ics.append(ic)
 
     def killed(self):
         x = self.sign * np.array(self.ics)
@@ -57,21 +101,46 @@ class RankAgent:
             return False
         return bool(x.mean() / (x.std(ddof=1) / np.sqrt(len(x))) < self.kill_t)
 
-    def ic_hat(self):
-        return 0.0 if self.killed() else self.sign * self.ic_prior_mean
+
+class TimeSeriesAgent(SignalAgent):
+    """Time-series hypothesis on a fixed set of coins: z is the clipped standardised own-trend of each coin, zero elsewhere;
+    skill is the pooled slope of realised returns on z (uncentred, it includes the common market component that a
+    cross-sectional IC removes), and the kill rule uses the t-statistic of that slope over the expanding window."""
+    name = "timeseries"
+    neutral = False
+    coins = ()
+    clip = 2.0
+
+    def __init__(self):
+        super().__init__()
+        self.sss = self.szr = self.srr = 0.0
+        self.n = 0                  # coin-period observations
+        self.periods = 0
 
     def belief(self, ctx):
-        z = rank_gauss(self.signal(ctx))
+        raw = np.zeros(len(ctx.tickers))
+        pick = [j for j, t in enumerate(ctx.tickers) if t in self.coins]
+        if pick:
+            raw[pick] = self.signal_of(ctx, pick)
+        z = np.clip(raw, -self.clip, self.clip)
         self.last = (list(ctx.tickers), z)
         return self.ic_hat() * ctx.sigma_h * z
 
-    def observe(self, fwd):
-        """fwd: {ticker: realised return over the period that followed the last decision}. Updates the IC history."""
-        if self.last is None:
+    def record(self, z, f):
+        ok = np.isfinite(f) & (z != 0)
+        if not ok.any():
             return
-        tick, z = self.last
-        f = np.array([fwd.get(t, np.nan) for t in tick])
-        ic = rank_ic(z, f)
-        if np.isfinite(ic):
-            self.ics.append(ic)
-        self.last = None
+        self.sss += float((z[ok] ** 2).sum())
+        self.szr += float((z[ok] * f[ok]).sum())
+        self.srr += float((f[ok] ** 2).sum())
+        self.n += int(ok.sum())
+        self.periods += 1
+
+    def killed(self):
+        if self.periods < self.kill_min_obs or self.sss == 0 or self.n < 3:
+            return False
+        b = self.szr / self.sss
+        resid = (self.srr - b * self.szr) / (self.n - 1)
+        if resid <= 0:
+            return False
+        return bool(self.sign * b * np.sqrt(self.sss) / np.sqrt(resid) < self.kill_t)

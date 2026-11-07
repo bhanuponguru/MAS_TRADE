@@ -5,10 +5,12 @@ its own neutrality constraints, capacities and margin; the agents are coupled on
 coin, X_a = sum_i x_ia, which carries the trading cost and the system limits:
 
     min  sum_i [ -mu_i'x_i + 1/2 x_i' Q_i x_i ]  +  sum_a C_a(X_a - H_a)
-    s.t. A_i' x_i = 0,  |x_ia| <= cap_ia,  sum_a |x_ia| <= margin_i          (agent i)
+    s.t. A_i' x_i = 0,  |x_ia| <= cap_ia,  sum_a |x_ia| <= margin_i   (agent i)
          sum_a |X_a| <= gross,   |beta'X| <= beta_band                          (system)
-
-with Q_i = gamma_i (diag(d) + B F B') (own variance plus a few factors) and C_a(d) = fee|d| + kappa_a |d|^1.5.
+with Q_i = gamma_i (diag(d) + B F B') (own variance plus a few factors) and C_a(d) = fee|d| + kappa_a |d|^1.5. Optionally a
+SYSTEM variance term (vol_penalty / 2) X' (diag(d) + B F B') X is added: the priced form of a volatility limit. It acts on the
+net position, so an agent that adds variance (a directional one) raises the price for everyone who trades the same coins and
+factor, and an agent whose positions hedge the book lowers it; it is not a uniform shrink of all stakes.
 
 It is a sharing problem (Boyd, Distributed Optimization, section 7.3): agents update in parallel against the
 current price, the net-position step is a separable 1-D prox plus the priced system limits, and the scaled dual
@@ -61,6 +63,7 @@ class CellProblem:
     gross: float = np.inf             # system gross cap
     beta: np.ndarray = None           # (N,) loadings for the beta band
     beta_band: float = np.inf         # |beta'X| <= band
+    vol_penalty: float = 0.0          # multiplier of the system variance term (priced volatility limit); needs at most one factor
 
     def __post_init__(self):
         M, N = self.mu.shape
@@ -71,6 +74,8 @@ class CellProblem:
         self.cap = np.full((M, N), np.inf) if self.cap is None else self.cap
         self.margin = np.full(M, np.inf) if self.margin is None else self.margin
         self.beta = np.zeros(N) if self.beta is None else self.beta
+        if self.vol_penalty > 0 and self.B.shape[1] > 1:
+            raise NotImplementedError("the priced system variance supports one factor")
 
     def Q(self, i):
         return self.gamma[i] * (np.diag(self.d) + self.B @ self.F @ self.B.T)
@@ -94,7 +99,9 @@ def objective(p, x):
     val = 0.0
     for i in range(M):
         val += -p.mu[i] @ x[i] + 0.5 * x[i] @ p.Q(i) @ x[i]
-    return float(val + cost_fn(x.sum(0) - p.H, p.fee, p.kappa))
+    X = x.sum(0)
+    val += 0.5 * p.vol_penalty * (X @ (p.d * X) + (X @ p.B) @ p.F @ (p.B.T @ X))
+    return float(val + cost_fn(X - p.H, p.fee, p.kappa))
 
 
 # ------------------------------------------------------------------ pieces of the solver
@@ -116,30 +123,48 @@ def _project_box_l1(t, cap, m):
     return np.sign(t) * np.minimum(np.maximum(a - th, 0.0), cap), th
 
 
-def _prox_net(m, t, p, lam_g, lam_b):
-    """argmin_X fee|X-H| + kappa|X-H|^1.5 + lam_g |X| + lam_b beta X + (1/2t)(X - m)^2, elementwise, in closed form.
-    The linear term shifts m; the kink of lam_g|X| at 0 splits the line into X > 0 and X < 0, each a plain cost prox."""
-    mb = m - t * lam_b * p.beta
-    x_pos = p.H + prox_cost(mb - t * lam_g - p.H, t, p.fee, p.kappa)
-    x_neg = p.H + prox_cost(mb + t * lam_g - p.H, t, p.fee, p.kappa)
+def _prox_net(m, t, p, lam_g, tilt, curv):
+    """argmin_X fee|X-H| + kappa|X-H|^1.5 + lam_g |X| + tilt . X + (curv/2) X^2 + (1/2t)(X - m)^2, elementwise, closed form.
+    The quadratic terms combine into one step tt = 1 / (1/t + curv) centred at tt (m/t - tilt); the kink of lam_g|X|
+    at 0 splits the line into X > 0 and X < 0, each a plain cost prox."""
+    tt = 1.0 / (1.0 / t + curv)
+    mm = tt * (m / t - tilt)
+    x_pos = p.H + prox_cost(mm - tt * lam_g - p.H, tt, p.fee, p.kappa)
+    x_neg = p.H + prox_cost(mm + tt * lam_g - p.H, tt, p.fee, p.kappa)
     return np.where(x_pos > 0, x_pos, np.where(x_neg < 0, x_neg, 0.0))
 
 
 def _x_step_system(m, t, p, tol=1e-10):
-    """Net-position step: separable cost prox plus the priced system limits. The gross-cap price is the smallest
-    lam_g >= 0 that meets the cap; the beta-band price lam_b is found on top of it (the gross price follows lam_b),
-    both by bracketed root finding on monotone functions."""
+    """Net-position step: separable cost prox plus the priced system terms. Prices: the gross-cap price lam_g (smallest
+    lam_g >= 0 meeting the cap), the beta-band price lam_b, and the variance penalty (diagonal part: extra curvature per coin;
+    factor part: a tilt vol_penalty F (B'X) along B, solved as a scalar fixed point). All by bracketed root finding on
+    monotone functions."""
+    curv = p.vol_penalty * p.d
+    Fb = float(p.F[0, 0]) if p.vol_penalty > 0 and p.F.size else 0.0
+    B0 = p.B[:, 0] if p.B.shape[1] else np.zeros_like(m)           # factor loadings of the variance term
+
+    def X_of(lam_g, lam_b):
+        band = lam_b * p.beta                                        # the beta-band price tilts along the band's loadings
+        if Fb == 0.0:
+            return _prox_net(m, t, p, lam_g, band, curv)
+        f = lambda e: e - B0 @ _prox_net(m, t, p, lam_g, band + p.vol_penalty * Fb * e * B0, curv)   # increasing in e
+        hi = 1.0
+        while f(hi) < 0 or f(-hi) > 0:
+            hi *= 4.0
+        e = brentq(f, -hi, hi, xtol=1e-14, rtol=1e-12)
+        return _prox_net(m, t, p, lam_g, band + p.vol_penalty * Fb * e * B0, curv)
+
     def gross_price(lb):
-        if not np.isfinite(p.gross) or np.abs(_prox_net(m, t, p, 0.0, lb)).sum() <= p.gross + tol:
+        if not np.isfinite(p.gross) or np.abs(X_of(0.0, lb)).sum() <= p.gross + tol:
             return 0.0
         hi = 1.0
-        while np.abs(_prox_net(m, t, p, hi, lb)).sum() > p.gross:
+        while np.abs(X_of(hi, lb)).sum() > p.gross:
             hi *= 4.0
-        return brentq(lambda l: np.abs(_prox_net(m, t, p, l, lb)).sum() - p.gross, 0.0, hi, xtol=1e-14, rtol=1e-12)
+        return brentq(lambda l: np.abs(X_of(l, lb)).sum() - p.gross, 0.0, hi, xtol=1e-14, rtol=1e-12)
 
     def net_of(lb):
         lg = gross_price(lb)
-        return _prox_net(m, t, p, lg, lb), lg
+        return X_of(lg, lb), lg
 
     X, lam_g = net_of(0.0)
     lam_b = 0.0
@@ -210,6 +235,7 @@ def solve_cells(p, rho=None, sigma=None, iters=3000, tol=1e-7, inner=10, warm=No
         if prim <= tol * scale and dual <= tol * scale:
             break
     prices = {"net": rho * u, "margin": np.array([sigma * a.theta for a in agents]), "gross": lam_g, "beta": lam_b,
+              "vol": p.vol_penalty,
               "neutral": [a.nu.copy() for a in agents]}
     return CellSolution(x=x, X=x.sum(0), prices=prices, iters=k, converged=prim <= tol * scale and dual <= tol * scale,
                         primal_res=prim, dual_res=dual, state={"x": x.copy(), "u": u.copy()})
@@ -242,7 +268,9 @@ def solve_reference(p, smooth=1e-9):
         x = pp - nn
         r = x.sum(0) - p.H
         fee = p.fee * np.sqrt(r * r + smooth ** 2).sum()
-        return sum(-p.mu[i] @ x[i] + 0.5 * x[i] @ p.Q(i) @ x[i] for i in range(M)) + fee + (p.kappa * (r * r + smooth ** 2) ** 0.75).sum()
+        X = x.sum(0)
+        var = 0.5 * p.vol_penalty * (X @ (p.d * X) + (X @ p.B) @ p.F @ (p.B.T @ X))
+        return sum(-p.mu[i] @ x[i] + 0.5 * x[i] @ p.Q(i) @ x[i] for i in range(M)) + fee + var + (p.kappa * (r * r + smooth ** 2) ** 0.75).sum()
     cons = []
     for i in range(M):
         if p.A[i] is not None and p.A[i].shape[1]:

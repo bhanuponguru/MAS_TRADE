@@ -87,3 +87,14 @@ def test_calibration_slope_is_one_when_calibrated_and_falls_with_over_confidence
     assert abs(stl.calibration_slope(belief, r) - 1.0) < 0.4
     assert stl.calibration_slope(4 * belief, r) < 0.6
     assert stl.ge(stl.calibration_slope(4 * belief, r), 0.5) < stl.ge(stl.calibration_slope(belief, r), 0.5)
+
+
+def test_calibration_ucb_acts_only_on_provable_over_confidence():
+    rng = np.random.default_rng(7)
+    small = rng.normal(0, 0.002, 3000)                                       # the size of a card's belief on real data
+    r_small = 1.75 * small + rng.normal(0, 0.15, 3000)                       # truly calibrated-ish, but returns are noisy
+    slope, se, ucb = stl.calibration_ucb(small, r_small)
+    assert se > 0.5 and ucb > 0.5                                            # too noisy to call it over-confident: no action
+    big = rng.normal(0, 0.006, 15000)
+    r_big = 0.25 * big + rng.normal(0, 0.06, 15000)                          # a clearly over-confident agent with enough data
+    assert stl.calibration_ucb(big, r_big)[2] < 0.5

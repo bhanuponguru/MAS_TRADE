@@ -6,10 +6,12 @@ jointly (cells_admm: Kelly stake with neutrality, capacity, margin, gross cap an
 the net, costs are charged to the accounts that trade with it, and positions then drift bar by bar earning price
 returns minus funding. Units: multiples of the initial equity; the impact cost uses a constant AUM (as the legacy executor).
 """
+from collections import deque
 from dataclasses import dataclass, field
 
 import numpy as np
 
+from . import stl
 from .agents.base import Ctx
 from .attribution import allocate_cost
 from .cells_admm import CellProblem, solve_cells
@@ -33,6 +35,11 @@ class EngineResult:
     iters: list = field(default_factory=list)
     unconverged: int = 0
     residuals: list = field(default_factory=list)   # max(primal, dual) residual of every unconverged solve
+    sanitized: int = 0                  # coin beliefs zeroed by the sanity spec
+    kelly_scales: list = field(default_factory=list)  # per rebalance: the calibration spec's multiplier of each agent's Kelly fraction
+    exante: list = field(default_factory=list)        # per rebalance: each agent's ex-ante annual Sharpe at its belief
+    agent_gross: list = field(default_factory=list)   # per rebalance: each agent's gross position
+    vol_price: list = field(default_factory=list)     # per rebalance: price of the system variance (0 = limit slack)
     turnover: float = 0.0               # annual sum |trade| / equity
     names: list = field(default_factory=list)
 
@@ -65,7 +72,12 @@ def run_engine(P, agents, cfg, solver=None, end=None):
     first = None
     turn = 0.0
     prev_t = None
-    beta_prev = np.zeros(N)
+    prev_bel = None                                             # (coin indices, (M, n) beliefs) of the previous decision
+    lam_prev = 0.0                                              # last price of the system variance
+    beta_last = np.ones(N)                                      # last known beta of every coin (for coins held but untradable)
+    hist_abs = [deque(maxlen=cfg.calibration_window) for _ in agents]    # past non-zero |beliefs|: the sanity spec
+    calib = [deque(maxlen=cfg.calibration_window) for _ in agents]       # (belief, realised return) pairs: the calibration spec
+    solve = lambda prob, **kw: solve_cells(prob, **(solver or {}), **kw)
     for k, t in enumerate(rebal):
         e = rebal[k + 1] if k + 1 < len(rebal) else n
         if prev_t is not None:                                  # the period that just ended: calibrate every agent
@@ -73,6 +85,11 @@ def run_engine(P, agents, cfg, solver=None, end=None):
             fwd = np.where(ok, np.prod(1.0 + P.R[prev_t:t], axis=0) - 1.0, np.nan)
             for ag in agents:
                 ag.observe({P.tickers[j]: fwd[j] for j in range(N)})
+            if prev_bel is not None:
+                ip, Bp = prev_bel
+                for i in range(M):
+                    keep = (Bp[i] != 0) & np.isfinite(fwd[ip])
+                    calib[i].append((Bp[i][keep], fwd[ip][keep]))
         prev_t = t
         ii, adv = tradable(P, cfg, t)
         if len(ii) < cfg.min_assets:
@@ -83,10 +100,22 @@ def run_engine(P, agents, cfg, solver=None, end=None):
         R_win = P.R[t - Tb:t]
         if len(ii) >= cfg.min_assets:
             sig_bar = R_win[-cov_b:, ii].std(0)
-            sigma_h = sig_bar * np.sqrt(H)
-            ctx_args = (R_win[:, ii], P.F[t - Tb:t][:, ii], P.V[t - Tb:t][:, ii], P.btc[t - Tb:t])
-            ctx = Ctx(*ctx_args, [P.tickers[j] for j in ii], bpd, sigma_h)
+            ctx = Ctx(R_win[:, ii], P.F[t - Tb:t][:, ii], P.V[t - Tb:t][:, ii], P.btc[t - Tb:t],
+                      [P.tickers[j] for j in ii], bpd, sig_bar * np.sqrt(H))
             beliefs = np.stack([ag.belief(ctx) for ag in agents])
+            for i in range(M):                                  # sanity spec on the volatility-standardised belief mu / sigma_H
+                zb = beliefs[i] / ctx.sigma_h
+                h = np.concatenate(list(hist_abs[i])) if hist_abs[i] else np.zeros(0)
+                if len(h) >= 200:
+                    zb, bad = stl.sanitize_belief(zb, stl.belief_bound(h, cfg.belief_bound_k))
+                    beliefs[i] = zb * ctx.sigma_h
+                    res.sanitized += int(round(bad * len(ii)))
+                nz = np.abs(zb)[zb != 0]
+                if len(nz):
+                    hist_abs[i].append(nz)
+            prev_bel = (ii, beliefs.copy())
+        else:
+            prev_bel = None
         if not trading:
             held[:] = 0.0
             account[t:e] = 0.0
@@ -99,9 +128,9 @@ def run_engine(P, agents, cfg, solver=None, end=None):
         pos = {j: q for q, j in enumerate(jj)}
         is_tradable = np.zeros(len(jj), bool)
         is_tradable[[pos[j] for j in ii]] = True
-        rb = P.btc[t - beta_b:t]
-        beta = np.ones(len(jj))
-        beta[is_tradable] = betas(P.R[t - beta_b:t][:, jj[is_tradable]], rb)
+        beta = beta_last[jj].copy()
+        beta[is_tradable] = betas(P.R[t - beta_b:t][:, jj[is_tradable]], P.btc[t - beta_b:t])
+        beta_last[jj[is_tradable]] = beta[is_tradable]
         var_bar = P.R[t - cov_b:t][:, jj].var(0)
         d = np.maximum(var_bar - beta ** 2 * P.btc[t - cov_b:t].var(), 0.2 * var_bar) * H + 1e-12
         sig_d = P.R[t - cov_b:t][:, jj].std(0) * np.sqrt(bpd)
@@ -111,24 +140,39 @@ def run_engine(P, agents, cfg, solver=None, end=None):
         mu[:, [pos[j] for j in ii]] = beliefs
         cap = np.where(is_tradable, cfg.participation * adv_j / cfg.aum, 0.0)[None, :].repeat(M, 0)
         Wn = np.maximum(W, 1e-9 * W.sum())
-        p = CellProblem(mu=mu, gamma=1.0 / (cfg.kelly * Wn), d=d, H=held[:, jj].sum(0), fee=cfg.fee_bps / 1e4, kappa=kappa,
-                        B=beta[:, None], F=np.array([[P.btc[t - cov_b:t].var() * H]]),
-                        A=[np.column_stack([np.ones(len(jj)), beta]) for _ in range(M)], cap=cap,
-                        margin=cfg.leverage * Wn, gross=cfg.gross * W.sum())
-        sol = solve_cells(p, **(solver or {}))
-        for _ in range(3):                                     # the volatility limit, as risk aversion: shrink the Kelly fraction
-            X = sol.x.sum(0)
-            per_period = np.sqrt(X @ (d * X) + (beta @ X) ** 2 * p.F[0, 0])
-            ex_ante = per_period * np.sqrt(P.ppy / H)
-            if ex_ante <= cfg.target_vol * 1.02:
+        scale = np.ones(M)                                      # calibration spec: over-confident agents bet less
+        for i in range(M):
+            if sum(len(b) for b, _ in calib[i]) >= cfg.calibration_min_obs:
+                b = np.concatenate([x for x, _ in calib[i]])
+                f = np.concatenate([y for _, y in calib[i]])
+                scale[i] = float(stl.kelly_scale(stl.ge(stl.calibration_ucb(b, f)[2], cfg.calibration_floor)))
+        res.kelly_scales.append(scale)
+        A_neutral = np.column_stack([np.ones(len(jj)), beta])
+        Fvar = np.array([[P.btc[t - cov_b:t].var() * H]])
+        p = CellProblem(mu=mu, gamma=1.0 / (cfg.kelly * scale * Wn), d=d, H=held[:, jj].sum(0), fee=cfg.fee_bps / 1e4, kappa=kappa,
+                        B=beta[:, None], F=Fvar, A=[A_neutral if ag.neutral else None for ag in agents], cap=cap,
+                        margin=cfg.leverage * Wn, gross=cfg.gross * W.sum(), beta=beta, beta_band=cfg.beta_band * W.sum())
+        exante = lambda X: np.sqrt(X @ (d * X) + (beta @ X) ** 2 * Fvar[0, 0]) * np.sqrt(P.ppy / H)
+        g_eff = 1.0 / np.sum(1.0 / p.gamma)                     # curvature of the agents' own risk terms taken together
+        p.vol_penalty = lam_prev                                # the volatility limit as a PRICE on system variance; start at last price
+        sol = solve(p)
+        v = exante(sol.x.sum(0))
+        for _ in range(5):
+            if v <= cfg.target_vol * 1.02 and (p.vol_penalty == 0.0 or v >= cfg.target_vol * 0.98):
                 break
-            p.gamma = p.gamma * ex_ante / cfg.target_vol
-            sol = solve_cells(p, **(solver or {}))
+            p.vol_penalty = max(g_eff * ((1.0 + p.vol_penalty / g_eff) * v / cfg.target_vol - 1.0), 0.0)
+            sol = solve(p, warm=sol.state)
+            v = exante(sol.x.sum(0))
+        lam_prev = p.vol_penalty
+        res.vol_price.append(p.vol_penalty)
         res.iters.append(sol.iters)
         res.unconverged += not sol.converged
         if not sol.converged:
             res.residuals.append(max(sol.primal_res, sol.dual_res))
         x = sol.x
+        Sx = np.array([[xi @ (d * xi) + (beta @ xi) ** 2 * Fvar[0, 0] for xi in x]])[0]
+        res.exante.append(np.where(Sx > 0, (mu * x).sum(1) / np.sqrt(np.maximum(Sx, 1e-300)), 0.0) * np.sqrt(P.ppy / H))
+        res.agent_gross.append(np.abs(x).sum(1))
         c_agent, c_total = allocate_cost(held[:, jj], x, p.fee, kappa)
         turn += np.abs(x.sum(0) - held[:, jj].sum(0)).sum()
         eq_pre = W.sum()                                       # equity before this rebalance's cost

@@ -46,6 +46,9 @@ COUPLINGS = {
     "beta": dict(beta=np.linspace(0.5, 1.5, 8), beta_band=0.05),
     "all": dict(fee=5e-4, cap=np.full((3, 8), 0.04), margin=np.array([0.2, 0.25, 0.3]), gross=0.2,
                 beta=np.linspace(0.5, 1.5, 8), beta_band=0.03),
+    "vol": dict(vol_penalty=150.0),
+    "vol+all": dict(fee=5e-4, cap=np.full((3, 8), 0.04), margin=np.array([0.2, 0.25, 0.3]), gross=0.2,
+                    beta=np.linspace(0.5, 1.5, 8), beta_band=0.03, vol_penalty=150.0),
 }
 
 
@@ -136,3 +139,44 @@ def test_l2_5_solver_is_pure_and_warm_start_agrees():
         assert np.array_equal(getattr(p, f), getattr(before, f))
     w = solve_cells(p, warm=a.state)
     assert w.iters <= a.iters and np.abs(w.X - a.X).max() < 1e-6
+
+
+def _ex_ante(p, X):
+    return float(np.sqrt(X @ (p.d * X) + (X @ p.B[:, 0]) ** 2 * p.F[0, 0]))
+
+
+def test_priced_volatility_limit_spares_the_agent_that_does_not_add_variance():
+    """A directional agent (no neutrality) piles onto the market factor; a neutral agent trades the cross-section. A uniform
+    shrink of every stake to the same total volatility cuts the neutral agent too (a cross-subsidy); the priced variance term
+    puts the cost on the factor exposure, so the neutral agent keeps more of its book."""
+    N = 10
+    rng = np.random.default_rng(11)
+    B = np.linspace(0.6, 1.4, N)[:, None]
+    base = dict(d=np.full(N, 0.04 ** 2), kappa=np.full(N, 0.02), fee=5e-4, H=np.zeros(N), B=B, F=np.array([[0.05 ** 2]]))
+    mu = np.zeros((2, N))
+    mu[0] = rng.normal(0, 0.003, N)                                           # neutral agent: cross-sectional views
+    mu[1] = 0.004 * B[:, 0]                                                   # directional agent: the market goes up
+    A = [np.column_stack([np.ones(N), B[:, 0]]), None]
+    gamma = np.array([100.0, 100.0])
+    free = solve_cells(CellProblem(mu=mu, gamma=gamma, A=A, **base))
+    target = 0.5 * _ex_ante(CellProblem(mu=mu, gamma=gamma, A=A, **base), free.X)
+    lam = 100.0                                                               # find the variance price meeting the target
+    for _ in range(40):
+        priced = solve_cells(CellProblem(mu=mu, gamma=gamma, A=A, vol_penalty=lam, **base))
+        v = _ex_ante(CellProblem(mu=mu, gamma=gamma, A=A, **base), priced.X)
+        if abs(v / target - 1) < 0.01:
+            break
+        lam *= (v / target) ** 3
+    scale = 1.0
+    for _ in range(40):                                                       # uniform shrink to the same volatility
+        uni = solve_cells(CellProblem(mu=mu, gamma=gamma * scale, A=A, **base))
+        v = _ex_ante(CellProblem(mu=mu, gamma=gamma, A=A, **base), uni.X)
+        if abs(v / target - 1) < 0.01:
+            break
+        scale *= (v / target) ** 2
+    P0 = CellProblem(mu=mu, gamma=gamma, A=A, **base)
+    assert abs(_ex_ante(P0, priced.X) / target - 1) < 0.02 and abs(_ex_ante(P0, uni.X) / target - 1) < 0.02   # same total volatility
+    g_free = np.abs(free.x[0]).sum()
+    assert np.abs(priced.x[0]).sum() > 0.9 * g_free                          # priced: the neutral agent barely pays
+    assert np.abs(uni.x[0]).sum() < 0.6 * g_free                             # uniform: it loses more than 40% of its book
+    assert abs(B[:, 0] @ priced.X) < 0.6 * abs(B[:, 0] @ free.X)             # the price fell on the factor exposure

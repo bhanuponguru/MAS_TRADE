@@ -11,8 +11,8 @@ from .base import RankAgent
 class RankCarry(RankAgent):
     name = "RankCarry"
 
-    def __init__(self, days=14.0, **kw):
-        super().__init__(**kw)
+    def __init__(self, days=14.0):
+        super().__init__()
         self.days = days
 
     def signal(self, ctx):
