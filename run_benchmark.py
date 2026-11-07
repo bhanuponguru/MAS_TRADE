@@ -12,14 +12,14 @@ import numpy as np
 import pandas as pd
 
 from mas_trade.agents.carry import RankCarry
-from mas_trade.agents.momentum import TimedMomentum, TimeSeriesMomentum
+from mas_trade.agents.momentum import TimeSeriesMomentum
 from mas_trade.config import EngineConfig
 from mas_trade.diagnostics import log_trial
 from mas_trade.engine import run_engine
 from mas_trade.metrics import block_bootstrap_sharpe, extended_stats, yearly_returns
 from mas_trade.panel import load_crypto_panel
 
-AGENTS = {"RankCarry": RankCarry, "TSMomentum": TimeSeriesMomentum, "TSMomentumTimed": TimedMomentum}
+AGENTS = {"RankCarry": RankCarry, "TSMomentum": TimeSeriesMomentum}
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--bar", default="1d", choices=["1d", "4h", "1h"])

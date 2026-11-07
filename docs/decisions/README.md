@@ -65,6 +65,7 @@ Records 0001-0031 describe the legacy implementation (tag `legacy-v1-v2`). Those
 | [0036](0036-risk-model-and-stl-placement.md) | Factor risk model, priced limits inside the ADMM, STL placements | Accepted (design) | `risk.py`, `stl.py` | [exp 008-010](../experiments/) |
 | [0037](0037-extended-data-store.md) | Extended data store: all kline columns, premium index, spot, hourly metrics; audits | Accepted | `data.py`, `download_data.py` | [exp 011](../experiments/011-data-audit.md) |
 | [0038](0038-beliefs-calibrated-to-the-hypothesis-card.md) | Belief scale from the hypothesis card, evidence only switches an agent off (kill rule); volatility limit through risk aversion | Accepted | `agents/base.py`, `engine.py` | [exp 013](../experiments/013-carry-baseline-on-real-data.md) |
+| [0039](0039-timing-inside-the-belief-of-h2.md) | Timing inside H2's belief: two mechanism-based states, shrunk and sign-constrained | Rejected (code deleted) | none (commit 394314e) | [exp 016](../experiments/016-timing-inside-h2.md) |
 
 ## Template
 ```
