@@ -166,6 +166,29 @@ def _x_step_system(m, t, p, tol=1e-10):
         lg = gross_price(lb)
         return X_of(lg, lb), lg
 
+    if Fb > 0.0 and np.isfinite(p.beta_band) and np.allclose(p.beta, B0):
+        # the band and the variance factor share their loadings: one scalar T tilts X along beta, X(T) is decreasing in beta'X
+        # and T = lam_b + vol_penalty F e with e = beta'X, so a single root finds either the slack-band fixed point or the
+        # band edge (lam_b follows). The gross cap is checked afterwards; if it binds, the general nested solve below runs.
+        e_of = lambda T: p.beta @ _prox_net(m, t, p, 0.0, T * p.beta, curv)
+        lamF = p.vol_penalty * Fb
+        f0 = lambda T: T - lamF * e_of(T)
+        hi = 1.0
+        while f0(hi) < 0 or f0(-hi) > 0:
+            hi *= 4.0
+        T = brentq(f0, -hi, hi, xtol=1e-14, rtol=1e-12)
+        lam_b = 0.0
+        if abs(e_of(T)) > p.beta_band + tol:
+            sgn = np.sign(e_of(T))
+            g = lambda T_: sgn * e_of(T_) - p.beta_band                    # decreasing in sgn * T
+            hi = 1.0
+            while g(sgn * hi) > 0:
+                hi *= 4.0
+            T = sgn * brentq(lambda u: g(sgn * u), 0.0, hi, xtol=1e-14, rtol=1e-12)
+            lam_b = T - lamF * e_of(T)
+        X = _prox_net(m, t, p, 0.0, T * p.beta, curv)
+        if not np.isfinite(p.gross) or np.abs(X).sum() <= p.gross + tol:
+            return X, 0.0, lam_b
     X, lam_g = net_of(0.0)
     lam_b = 0.0
     if np.isfinite(p.beta_band) and abs(p.beta @ X) > p.beta_band + tol:
@@ -208,13 +231,14 @@ class _Agent:
         return x
 
 
-def solve_cells(p, rho=None, sigma=None, iters=3000, tol=1e-7, inner=10, warm=None):
-    """Sharing ADMM over the cells of CellProblem p. rho and sigma default to 3 x the typical curvature of the agents' own risk
-    plus the system variance price (3x was the fastest of 1, 2, 3, 5 on the random test problems and on real engine problems; the
-    optimum does not depend on it). A warm start only helps when the next problem is a small change of the last one; a warm start
+def solve_cells(p, rho=None, sigma=None, iters=3000, tol=1e-6, inner=10, warm=None, relax=1.7):
+    """Sharing ADMM over the cells of CellProblem p. rho and sigma default to 5 x the typical curvature of the agents' own risk
+    plus the system variance price, with over-relaxation 1.7 (on random test problems 3x was fastest, on the slow-converging
+    problems captured from the real 4h run 6-10x was; 5x with relaxation 1.7 is the compromise. The optimum does not depend on
+    either). A warm start only helps when the next problem is a small change of the last one; a warm start
     taken from a different variance price made convergence 8x slower on real problems, so the engine solves cold."""
     M, N = p.mu.shape
-    curv = 3.0 * float((np.mean(p.gamma) + p.vol_penalty) * max(np.mean(p.d), 1e-12))
+    curv = 5.0 * float((np.mean(p.gamma) + p.vol_penalty) * max(np.mean(p.d), 1e-12))
     rho = curv if rho is None else rho
     sigma = curv if sigma is None else sigma
     agents = [_Agent(p, i, rho, sigma) for i in range(M)]
@@ -228,19 +252,26 @@ def solve_cells(p, rho=None, sigma=None, iters=3000, tol=1e-7, inner=10, warm=No
         xbar = x.mean(0)
         xn = np.stack([agents[i].solve(p, x[i] - xbar + zbar - u, rho, sigma, inner) for i in range(M)])
         xbar_n = xn.mean(0)
-        X, lam_g, lam_b = _x_step_system(M * (xbar_n + u), t, p)
+        xh = relax * xbar_n + (1.0 - relax) * zbar                  # over-relaxation (relax = 1: plain ADMM)
+        X, lam_g, lam_b = _x_step_system(M * (xh + u), t, p)
         z_new = X / M
-        u = u + xbar_n - z_new
+        u = u + xh - z_new
         prim = float(np.linalg.norm(xbar_n - z_new))
         dual = float(rho * np.linalg.norm(z_new - zbar))
         x, zbar = xn, z_new
-        scale = max(1.0, float(np.abs(X).max()))
-        if prim <= tol * scale and dual <= tol * scale:
+        # relative stopping rule (Boyd section 3.3): residuals small against the size of what is being solved. The old absolute
+        # rule (1e-7) stopped real problems (positions of order 0.01) after 10 iterations. At tol 1e-6 the NET position is accurate
+        # to about 1e-6 while the split of it between agents (offsetting positions cost only their own risk) converges more slowly,
+        # about 9% at 1e-6 and 1% at 1e-10: account attribution carries that noise, the system P&L does not.
+        scale_p = max(float(np.linalg.norm(xn)), float(np.linalg.norm(z_new)), 1e-9)      # the cells, not only their net: offsetting
+        #                                                                         positions between agents are invisible in the net
+        scale_d = max(float(np.linalg.norm(rho * u)), 1e-9)
+        if prim <= tol * scale_p and dual <= tol * scale_d:
             break
     prices = {"net": rho * u, "margin": np.array([sigma * a.theta for a in agents]), "gross": lam_g, "beta": lam_b,
               "vol": p.vol_penalty,
               "neutral": [a.nu.copy() for a in agents]}
-    return CellSolution(x=x, X=x.sum(0), prices=prices, iters=k, converged=prim <= tol * scale and dual <= tol * scale,
+    return CellSolution(x=x, X=x.sum(0), prices=prices, iters=k, converged=prim <= tol * scale_p and dual <= tol * scale_d,
                         primal_res=prim, dual_res=dual, state={"x": x.copy(), "u": u.copy()})
 
 

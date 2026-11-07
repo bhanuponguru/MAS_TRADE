@@ -56,7 +56,7 @@ COUPLINGS = {
 @pytest.mark.parametrize("seed", range(5))
 def test_l2_1_matches_one_node_reference(name, seed):
     p = make(seed, **COUPLINGS[name])
-    s = solve_cells(p)
+    s = solve_cells(p, tol=1e-9)                 # algorithm correctness: converged tightly (the default 1e-6 is a speed choice, see below)
     ref = solve_reference(p)
     typical = np.abs(ref.sum(0)).mean()
     assert s.converged
@@ -158,18 +158,18 @@ def test_priced_volatility_limit_spares_the_agent_that_does_not_add_variance():
     mu[1] = 0.004 * B[:, 0]                                                   # directional agent: the market goes up
     A = [np.column_stack([np.ones(N), B[:, 0]]), None]
     gamma = np.array([100.0, 100.0])
-    free = solve_cells(CellProblem(mu=mu, gamma=gamma, A=A, **base))
+    free = solve_cells(CellProblem(mu=mu, gamma=gamma, A=A, **base), tol=1e-10)
     target = 0.5 * _ex_ante(CellProblem(mu=mu, gamma=gamma, A=A, **base), free.X)
     lam = 100.0                                                               # find the variance price meeting the target
     for _ in range(40):
-        priced = solve_cells(CellProblem(mu=mu, gamma=gamma, A=A, vol_penalty=lam, **base))
+        priced = solve_cells(CellProblem(mu=mu, gamma=gamma, A=A, vol_penalty=lam, **base), tol=1e-10)
         v = _ex_ante(CellProblem(mu=mu, gamma=gamma, A=A, **base), priced.X)
         if abs(v / target - 1) < 0.01:
             break
         lam *= (v / target) ** 3
     scale = 1.0
     for _ in range(40):                                                       # uniform shrink to the same volatility
-        uni = solve_cells(CellProblem(mu=mu, gamma=gamma * scale, A=A, **base))
+        uni = solve_cells(CellProblem(mu=mu, gamma=gamma * scale, A=A, **base), tol=1e-10)
         v = _ex_ante(CellProblem(mu=mu, gamma=gamma, A=A, **base), uni.X)
         if abs(v / target - 1) < 0.01:
             break
@@ -180,3 +180,32 @@ def test_priced_volatility_limit_spares_the_agent_that_does_not_add_variance():
     assert np.abs(priced.x[0]).sum() > 0.9 * g_free                          # priced: the neutral agent barely pays
     assert np.abs(uni.x[0]).sum() < 0.6 * g_free                             # uniform: it loses more than 40% of its book
     assert abs(B[:, 0] @ priced.X) < 0.6 * abs(B[:, 0] @ free.X)             # the price fell on the factor exposure
+
+
+@pytest.mark.parametrize("seed", range(4))
+@pytest.mark.parametrize("band", [0.5, 0.02])           # slack and binding
+def test_shared_loadings_fast_path_matches_the_reference(seed, band):
+    p = make(seed, neutral=False, vol_penalty=20.0, fee=5e-4)              # directional agents, so the band can bind
+    p.mu = p.mu + 0.01 * p.B[:, 0][None, :]                                 # a strong market view
+    p.beta, p.beta_band = p.B[:, 0].copy(), band        # the band and the variance factor use the same loadings (the engine's case)
+    s = solve_cells(p, tol=1e-9)
+    ref = solve_reference(p)
+    assert s.converged
+    assert abs(p.beta @ s.X) <= band + 1e-6
+    assert (objective(p, s.x) - objective(p, ref)) / abs(objective(p, ref)) <= 1e-5
+    assert np.abs(s.X - ref.sum(0)).max() <= 1e-3 * np.abs(ref.sum(0)).mean()
+    if band == 0.02:
+        assert abs(abs(p.beta @ s.X) - band) < 1e-6 and s.prices["beta"] > 0     # the band binds and has a price
+
+
+@pytest.mark.parametrize("name", list(COUPLINGS))
+def test_default_tolerance_gives_an_accurate_net_position_and_feasible_constraints(name):
+    """At the default relative tolerance (1e-6) the NET position and the constraints are accurate to about 1e-4; only the split of
+    the net between agents (offsetting positions) is looser (about 9%), which matters for account attribution, not for the
+    system."""
+    p = make(0, **COUPLINGS[name])
+    fast, tight = solve_cells(p), solve_cells(p, tol=1e-10)
+    assert fast.converged
+    assert np.linalg.norm(fast.X - tight.X) <= 1e-3 * max(np.linalg.norm(tight.X), 1e-9)
+    assert np.abs(fast.X).sum() <= p.gross * (1 + 1e-4) + 1e-9
+    assert abs(p.beta @ fast.X) <= p.beta_band * (1 + 1e-4) + 1e-9
