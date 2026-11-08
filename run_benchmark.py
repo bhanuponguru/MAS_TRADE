@@ -25,7 +25,8 @@ AGENTS = {"RankCarry": RankCarry, "TSMomentum": TimeSeriesMomentum, "RankReversa
 ap = argparse.ArgumentParser()
 ap.add_argument("--bar", default="1d", choices=["1d", "4h", "1h"])
 ap.add_argument("--universe", default="broad", choices=["broad", "majors"])
-ap.add_argument("--agents", nargs="+", default=["RankCarry"], choices=list(AGENTS))
+ap.add_argument("--agents", nargs="+", default=["RankCarry"],
+                help=f"agents, each NAME or NAME:DAYS for a window variant (e.g. RankCarry:7); NAME in {list(AGENTS)}")
 ap.add_argument("--unseal", action="store_true")
 ap.add_argument("--boot", type=int, default=1000)
 ap.add_argument("--label", default=None, help="name of this variant in the trial log")
@@ -33,14 +34,26 @@ ap.add_argument("--tag", default=None, help="output folder name under results/ (
 ap.add_argument("--consensus", default="hub", choices=["hub", "graph"], help="joint solver: one hub, or neighbours only (decision 0042)")
 ap.add_argument("--topology", default="complete", help="agent graph when --consensus graph: complete, ring, line, star, random")
 ap.add_argument("--rounds", type=int, default=1, help="gossip rounds per ADMM iteration (graph only)")
+ap.add_argument("--iters", type=int, default=None, help="cap on solver iterations per solve (communication budget); default the solver's")
 args = ap.parse_args()
 
 cfg = EngineConfig.for_tier(args.bar, consensus=args.consensus, topology=args.topology, gossip_rounds=args.rounds)
 P = load_crypto_panel(args.bar, args.universe)
 cut = P.dates[-1] - pd.DateOffset(months=cfg.holdout_months)
 end = len(P.dates) if args.unseal else int((P.dates < cut).sum())
-agents = [AGENTS[a]() for a in args.agents]
-res = run_engine(P, agents, cfg, end=end)
+def make_agent(spec):
+    name, _, days = spec.partition(":")
+    if name not in AGENTS:
+        ap.error(f"unknown agent {name!r}")
+    if not days:
+        return AGENTS[name]()
+    ag = AGENTS[name](days=float(days))
+    ag.name = f"{ag.name}{days}"                                   # distinct names for the per-agent tables
+    return ag
+
+
+agents = [make_agent(a) for a in args.agents]
+res = run_engine(P, agents, cfg, end=end, solver=None if args.iters is None else {"iters": args.iters})
 print(f"{args.bar}/{args.universe}: {len(P.dates)} bars x {len(P.tickers)} symbols, H={cfg.rebal_bars} bars, "
       f"{res.dates[0].date()} -> {res.dates[-1].date()}" + ("  [HOLDOUT UNSEALED]" if args.unseal else "  [holdout sealed]"))
 
