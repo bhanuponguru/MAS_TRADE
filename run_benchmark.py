@@ -35,9 +35,18 @@ ap.add_argument("--consensus", default="hub", choices=["hub", "graph"], help="jo
 ap.add_argument("--topology", default="complete", help="agent graph when --consensus graph: complete, ring, line, star, random")
 ap.add_argument("--rounds", type=int, default=1, help="gossip rounds per ADMM iteration (graph only)")
 ap.add_argument("--iters", type=int, default=None, help="cap on solver iterations per solve (communication budget); default the solver's")
+ap.add_argument("--link-fail", type=float, default=0.0, help="graph only: probability that an edge is down in a gossip round (experiment 021)")
+ap.add_argument("--offline", nargs=3, action="append", default=[], metavar=("AGENT", "FIRST", "LAST"),
+                help="agent AGENT is offline from day FIRST to day LAST (YYYY-MM-DD); repeatable (experiment 021)")
+ap.add_argument("--faulty", nargs="+", default=[], help="agent names that misbehave: hold nothing, send false values in graph mode")
+ap.add_argument("--attack", type=float, default=0.0, help="what a faulty agent adds to every value it sends")
+ap.add_argument("--trim", type=int, default=0, help="graph only: F of the W-MSR trimmed mixing step")
+ap.add_argument("--detect", type=int, default=0, help="graph only: detect and isolate a misbehaving agent after this many iterations")
 args = ap.parse_args()
 
-cfg = EngineConfig.for_tier(args.bar, consensus=args.consensus, topology=args.topology, gossip_rounds=args.rounds)
+cfg = EngineConfig.for_tier(args.bar, consensus=args.consensus, topology=args.topology, gossip_rounds=args.rounds,
+                            link_fail=args.link_fail, offline=tuple(tuple(o) for o in args.offline), faulty=tuple(args.faulty),
+                            attack=args.attack, trim=args.trim, detect=args.detect)
 P = load_crypto_panel(args.bar, args.universe)
 cut = P.dates[-1] - pd.DateOffset(months=cfg.holdout_months)
 end = len(P.dates) if args.unseal else int((P.dates < cut).sum())
@@ -90,6 +99,13 @@ print(yearly_returns(net.to_frame("net")).round(3).to_string())
 out = Path("results") / (args.tag or f"{args.bar}_{args.universe}_{'+'.join(args.agents)}")
 out.mkdir(parents=True, exist_ok=True)
 bars.assign(btc=btc, **{f"acc_{c}": acc_ret[c] for c in acc_ret}).to_csv(out / "bars.csv")
+if res.iters:                                                   # per rebalance: solver work, risk and isolation (experiments 020-021)
+    pd.DataFrame({"date": P.dates[res.solved], "iterations": res.iters, "sys_vol": res.sys_vol,
+                  "isolated": [" ".join(res.names[i] for i in q) for q in res.isolated]}).to_csv(out / "rebal.csv", index=False)
+if cfg.faulty or cfg.detect or cfg.offline or cfg.link_fail:
+    first = next((k for k, q in enumerate(res.isolated) if q), None)
+    print(f"resilience: isolated at the end {[res.names[i] for i in res.isolated[-1]] if res.isolated else []}; "
+          f"first isolation at solve {first} of {len(res.isolated)}")
 log_trial(Path("results/trials.jsonl"), bar=args.bar, universe=args.universe, name=args.label or "+".join(args.agents),
           sharpe_ann=st["Sharpe"], bars=len(net), unsealed=args.unseal)
 print(f"\nwritten to {out}/")

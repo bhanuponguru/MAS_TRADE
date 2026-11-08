@@ -7,7 +7,7 @@ import pytest
 from mas_trade.agents.carry import RankCarry
 from mas_trade.cells_admm import objective, solve_cells, solve_reference
 from mas_trade.engine import run_engine
-from mas_trade.graph_admm import TOPOLOGIES, adjacency, is_connected, metropolis, mixing_rate, network, solve_cells_graph
+from mas_trade.graph_admm import TOPOLOGIES, adjacency, is_connected, metropolis, mixing_rate, network, solve_cells_graph, solve_cells_resilient, wmsr_mix
 from test_cells_admm import COUPLINGS, make
 from test_engine import CFG, make_panel_synth
 
@@ -98,3 +98,81 @@ def test_engine_graph_mode_matches_the_hub():
         for (_, xh), (_, xg) in zip(hub.targets, g.targets):
             if xh.size:
                 assert np.abs(xh.sum(0) - xg.sum(0)).max() <= 1e-3 * max(np.abs(xh.sum(0)).max(), 1e-9)
+
+
+# ------------------------------------------------------------------ resilience options (experiment 021)
+def test_wmsr_mix_is_plain_mixing_when_nothing_is_trimmed_and_ignores_an_outlier():
+    A = adjacency("complete", 5)
+    W = metropolis(A)
+    S = np.random.default_rng(0).normal(size=(5, 3))
+    assert np.allclose(wmsr_mix(S, A, W, 0), W @ S)
+    S2 = S.copy()
+    S2[4] = 1e6                                                              # one neighbour sends nonsense
+    out = wmsr_mix(S2, A, W, 1)
+    lo, hi = S[:4].min(0), S[:4].max(0)
+    assert (out[:4] >= lo - 1e-12).all() and (out[:4] <= hi + 1e-12).all()   # honest values stay in the honest range
+
+
+def test_link_failures_still_reach_the_reference():
+    """Edges that drop at random in every round: the weights are recomputed on the edges that are up, so the sum of the
+    estimates is kept and the solver still reaches the optimum, only later."""
+    M = 4
+    p = make(1, M=M, **couplings_for("all", M))
+    ref = solve_reference(p)
+    base = solve_cells_graph(p, network("ring", M), rounds=3, tol=1e-9, iters=6000)
+    g = solve_cells_graph(p, network("ring", M), rounds=3, tol=1e-9, iters=6000, link_fail=0.3, seed=1)
+    assert g.converged and g.iters >= base.iters
+    assert np.abs(g.X - ref.sum(0)).max() <= 1e-3 * np.abs(ref.sum(0)).mean()
+
+
+def test_engine_offline_agent_holds_nothing_and_graph_matches_hub():
+    drift = np.random.default_rng(1).normal(0, 1, 12)
+    P = make_panel_synth(n=300, N=12, drift=drift)
+    def agents():
+        ags = [RankCarry(days=10), RankCarry(days=20), RankCarry(days=40)]
+        for a, nm in zip(ags, ("c10", "c20", "c40")):
+            a.name = nm
+        return ags
+    names = ["c10", "c20", "c40"]
+    d0, d1 = P.dates[200].strftime("%Y-%m-%d"), P.dates[260].strftime("%Y-%m-%d")
+    cfg = replace(CFG, offline=((names[1], d0, d1),))
+    hub = run_engine(P, agents(), cfg)
+    g = run_engine(P, agents(), replace(cfg, consensus="graph", topology="ring", gossip_rounds=2))
+    hit = 0
+    for t, (_, x) in zip(hub.rebal, hub.targets):
+        if x.size and d0 <= P.dates[t].strftime("%Y-%m-%d") <= d1:
+            assert np.abs(x[1]).max() == 0.0
+            hit += 1
+    assert hit >= 2
+    assert np.allclose(np.cumprod(1 + g.net), np.cumprod(1 + hub.net), rtol=1e-4, atol=1e-6)
+
+
+def test_detector_isolates_a_liar_on_a_robust_graph_and_nobody_otherwise():
+    M = 6
+    p = make(0, M=M, **couplings_for("all", M))
+    p.cap = p.cap.copy()
+    p.cap[2] = 0.0                                                           # the misbehaving agent holds nothing
+    opt = solve_cells(p, tol=1e-10, iters=50000).X
+    A = adjacency("complete", M)
+    clean = solve_cells_resilient(p, A, tol=1e-9, iters=4000)
+    assert clean.state["isolated"] == [] and clean.converged
+    g = solve_cells_resilient(p, A, faulty=[2], attack=lambda v, k: v + 0.01, tol=1e-9, iters=4000)
+    assert g.state["isolated"] == [2] and g.converged
+    assert np.abs(g.X - opt).max() <= 1e-4 * np.abs(opt).mean()
+    bad = solve_cells_graph(p, metropolis(A), faulty=[2], attack=lambda v, k: v + 0.01, tol=1e-9, iters=400)
+    assert np.abs(bad.X - opt).max() > 0.1 * np.abs(opt).mean()             # without the detector the lie spoils the result
+
+
+def test_engine_detector_quarantines_the_liar_and_matches_the_hub_without_it():
+    drift = np.random.default_rng(1).normal(0, 1, 12)
+    P = make_panel_synth(n=300, N=12, drift=drift)
+
+    def agents():
+        ags = [RankCarry(days=d) for d in (10, 20, 40, 60)]
+        for a, d in zip(ags, (10, 20, 40, 60)):
+            a.name = f"c{d}"
+        return ags
+    hub = run_engine(P, agents(), replace(CFG, faulty=("c40",)))
+    g = run_engine(P, agents(), replace(CFG, consensus="graph", topology="complete", faulty=("c40",), attack=0.01, detect=50))
+    assert all(q == [2] for q in g.isolated)
+    assert np.allclose(np.cumprod(1 + g.net), np.cumprod(1 + hub.net), rtol=1e-4, atol=1e-6)

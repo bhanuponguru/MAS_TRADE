@@ -41,6 +41,15 @@ class EngineConfig:
     topology: str = "complete"  # graph of the agents when consensus = "graph": complete, ring, line, star, random
     gossip_rounds: int = 1      # neighbour-averaging rounds per ADMM iteration (graph only)
     topology_seed: int = 0      # seed of the "random" topology
+    # resilience (experiment 021); all off by default
+    link_fail: float = 0.0      # graph only: every edge is down with this probability in every gossip round
+    offline: tuple = ()         # ((agent name, first day, last day), ...): the agent is out; its positions are closed and the
+                                # others solve without it (graph: on the graph without that node)
+    faulty: tuple = ()          # agent names that misbehave: they hold nothing; in graph mode they send false estimates
+    attack: float = 0.0         # what a faulty agent adds to every value it sends (initial-equity units)
+    trim: int = 0               # graph only: F of the W-MSR (trimmed) mixing step; 0 = plain mixing
+    detect: int = 0             # graph only: if > 0, detect and isolate a misbehaving agent (graph_admm.solve_cells_resilient):
+                                # flagged after this many iterations in a row of extreme values; isolated agents stay out
 
     @property
     def ppy(self):

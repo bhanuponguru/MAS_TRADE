@@ -14,8 +14,8 @@ import numpy as np
 from . import stl
 from .agents.base import Ctx
 from .attribution import allocate_cost
-from .cells_admm import CellProblem, solve_cells
-from .graph_admm import network, solve_cells_graph
+from .cells_admm import CellProblem, CellSolution, solve_cells
+from .graph_admm import adjacency, is_connected, metropolis, solve_cells_graph, solve_cells_resilient, subproblem
 from .market import apply_floor, limited_liability
 from .risk import betas
 
@@ -42,6 +42,8 @@ class EngineResult:
     agent_gross: list = field(default_factory=list)   # per rebalance: each agent's gross position
     vol_price: list = field(default_factory=list)     # per rebalance: price of the system variance (0 = limit slack)
     sys_vol: list = field(default_factory=list)       # per rebalance: ex-ante annual volatility of the system / equity
+    isolated: list = field(default_factory=list)      # per solved rebalance: agents isolated by the detector so far (experiment 021)
+    solved: list = field(default_factory=list)        # bars of the rebalances that were solved (iters, sys_vol, isolated align with it)
     turnover: float = 0.0               # annual sum |trade| / equity
     names: list = field(default_factory=list)
 
@@ -79,13 +81,39 @@ def run_engine(P, agents, cfg, solver=None, end=None):
     beta_last = np.ones(N)                                      # last known beta of every coin (for coins held but untradable)
     hist_abs = [deque(maxlen=cfg.calibration_window) for _ in agents]    # past non-zero |beliefs|: the sanity spec
     calib = [deque(maxlen=cfg.calibration_window) for _ in agents]       # (belief, realised return) pairs: the calibration spec
-    if cfg.consensus == "graph":                                # decision 0042: agents talk only to their neighbours
-        Wg = network(cfg.topology, M, seed=cfg.topology_seed)
-        solve = lambda prob, **kw: solve_cells_graph(prob, Wg, rounds=cfg.gossip_rounds, **(solver or {}), **kw)
-    elif cfg.consensus == "hub":
-        solve = lambda prob, **kw: solve_cells(prob, **(solver or {}), **kw)
-    else:
+    if cfg.consensus not in ("hub", "graph"):
         raise ValueError(f"unknown consensus {cfg.consensus!r}")
+    names = [a.name for a in agents]
+    faulty = [names.index(nm) for nm in cfg.faulty]
+    Ag = adjacency(cfg.topology, M, seed=cfg.topology_seed) if cfg.consensus == "graph" else None
+    quarantine = set()                                          # agents isolated by the detector: out for the rest of the run
+    graph_kw = dict(rounds=cfg.gossip_rounds, link_fail=cfg.link_fail, trim=cfg.trim, attack=lambda v, it: v + cfg.attack)
+
+    def solve(prob, out_):
+        """Solve with the agents that are not out (decision 0042 + experiment 021). Out agents hold nothing. In graph mode the
+        others use the graph without the out nodes; faulty agents stay on the graph (holding nothing) and send false values.
+        In hub mode faulty agents are simply out (a hub has no messages to corrupt)."""
+        out_ = out_ | quarantine
+        keep = np.array([i for i in range(M) if i not in out_ and (cfg.consensus == "graph" or i not in faulty)])
+        sub = prob if len(keep) == M else subproblem(prob, keep)
+        if cfg.consensus == "hub":
+            sol = solve_cells(sub, **(solver or {}))
+        else:
+            A = Ag[np.ix_(keep, keep)]
+            if not is_connected(A):
+                raise RuntimeError(f"the graph without agents {sorted(out_)} is disconnected")
+            fk = [q for q, i in enumerate(keep) if i in faulty]
+            if cfg.detect:
+                sol = solve_cells_resilient(sub, A, faulty=fk, detect=cfg.detect, seed=k, **graph_kw, **(solver or {}))
+                quarantine.update(int(keep[q]) for q in sol.state["isolated"])
+            else:
+                sol = solve_cells_graph(sub, metropolis(A), faulty=fk, seed=k, **graph_kw, **(solver or {}))
+        if len(keep) == M:
+            return sol
+        x = np.zeros((M, prob.mu.shape[1]))
+        x[keep] = sol.x
+        return CellSolution(x=x, X=x.sum(0), prices=sol.prices, iters=sol.iters, converged=sol.converged,
+                            primal_res=sol.primal_res, dual_res=sol.dual_res, state=sol.state)
     for k, t in enumerate(rebal):
         e = rebal[k + 1] if k + 1 < len(rebal) else n
         if prev_t is not None:                                  # the period that just ended: calibrate every agent
@@ -147,6 +175,10 @@ def run_engine(P, agents, cfg, solver=None, end=None):
         mu = np.zeros((M, len(jj)))
         mu[:, [pos[j] for j in ii]] = beliefs
         cap = np.where(is_tradable, cfg.participation * adv_j / cfg.aum, 0.0)[None, :].repeat(M, 0)
+        day = P.dates[t].strftime("%Y-%m-%d")
+        out_ = {names.index(nm) for nm, a0, a1 in cfg.offline if a0 <= day <= a1}    # agents that are offline now
+        for i in out_ | set(faulty):
+            cap[i] = 0.0
         outside = {}                                            # an agent may only hold the coins its card names
         for i, ag in enumerate(agents):
             if getattr(ag, 'universe', None):
@@ -169,18 +201,20 @@ def run_engine(P, agents, cfg, solver=None, end=None):
         g_eff = 1.0 / np.sum(1.0 / p.gamma)                     # curvature of the agents' own risk terms taken together
         vol_cap = cfg.target_vol * W.sum()                      # the limit is a share of CURRENT equity (positions are in initial-equity units)
         p.vol_penalty = lam_prev                                # the volatility limit as a PRICE on system variance; start at last price
-        sol = solve(p)
+        sol = solve(p, out_)
         v = exante(sol.x.sum(0))
         for _ in range(5):
             if v <= vol_cap * 1.02 and (p.vol_penalty == 0.0 or v >= vol_cap * 0.98):
                 break
             p.vol_penalty = max(g_eff * ((1.0 + p.vol_penalty / g_eff) * v / vol_cap - 1.0), 0.0)
-            sol = solve(p)
+            sol = solve(p, out_)
             v = exante(sol.x.sum(0))
         lam_prev = p.vol_penalty
         res.vol_price.append(p.vol_penalty)
         res.sys_vol.append(v / W.sum())
         res.iters.append(sol.iters)
+        res.isolated.append(sorted(quarantine))
+        res.solved.append(int(t))
         res.unconverged += not sol.converged
         if not sol.converged:
             res.residuals.append(max(sol.primal_res, sol.dual_res))
