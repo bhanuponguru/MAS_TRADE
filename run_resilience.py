@@ -2,8 +2,7 @@
 
 python run_resilience.py [--workers 4]
 
-Link failures, a misbehaving agent (constant lie or noise) with and without detect-and-isolate, and trimmed (W-MSR) mixing
-with no attacker, on the eight-agent problems of experiment 020 (fresh seeds 10-12). Writes docs/experiments/data/021/partA.csv
+Link failures and a misbehaving agent (constant lie or noise) with and without detect-and-isolate, on the eight-agent problems of experiment 020 (fresh seeds 10-12). Writes docs/experiments/data/021/partA.csv
 and prints the gates A1 and A2 (rules in docs/experiments/021-resilience.md). No market data is used.
 """
 import argparse
@@ -47,8 +46,7 @@ def one(job):
             g = solve_cells_resilient(p, A, detect=50, iters=CAP, **kw)
             isolated = g.state["isolated"]
         else:
-            g = solve_cells_graph(p, metropolis(A), trim=1 if defence == "trim" else 0,
-                                  iters=1000 if (liar and defence == "none") else CAP, **kw)
+            g = solve_cells_graph(p, metropolis(A), iters=1000 if (liar and defence == "none") else CAP, **kw)
         err, it, conv = float(np.abs(g.X - opt).max() / np.abs(opt).mean()), g.iters, g.converged
     except RuntimeError as ex:                               # isolation disconnected the graph
         err, it, conv, err_msg = np.nan, np.nan, False, str(ex)
@@ -67,7 +65,7 @@ def jobs():
             out += [("liar", g, r, s, 0.0, "constant", d, "detect") for d in (0.001, 0.01, 1.0)]
             out += [("liar", g, r, s, 0.0, "constant", 0.01, "none")]
         for g, r in GRAPHS[:2]:
-            out += [("liar", g, r, s, 0.0, "noise", 0.01, "detect"), ("trim_clean", g, r, s, 0.0, None, 0.0, "trim")]
+            out += [("liar", g, r, s, 0.0, "noise", 0.01, "detect")]   # the trimmed-mixing cases (A5) ran at commit 4194d43
     return out
 
 

@@ -40,13 +40,12 @@ ap.add_argument("--offline", nargs=3, action="append", default=[], metavar=("AGE
                 help="agent AGENT is offline from day FIRST to day LAST (YYYY-MM-DD); repeatable (experiment 021)")
 ap.add_argument("--faulty", nargs="+", default=[], help="agent names that misbehave: hold nothing, send false values in graph mode")
 ap.add_argument("--attack", type=float, default=0.0, help="what a faulty agent adds to every value it sends")
-ap.add_argument("--trim", type=int, default=0, help="graph only: F of the W-MSR trimmed mixing step")
 ap.add_argument("--detect", type=int, default=0, help="graph only: detect and isolate a misbehaving agent after this many iterations")
 args = ap.parse_args()
 
 cfg = EngineConfig.for_tier(args.bar, consensus=args.consensus, topology=args.topology, gossip_rounds=args.rounds,
                             link_fail=args.link_fail, offline=tuple(tuple(o) for o in args.offline), faulty=tuple(args.faulty),
-                            attack=args.attack, trim=args.trim, detect=args.detect)
+                            attack=args.attack, detect=args.detect)
 P = load_crypto_panel(args.bar, args.universe)
 cut = P.dates[-1] - pd.DateOffset(months=cfg.holdout_months)
 end = len(P.dates) if args.unseal else int((P.dates < cut).sum())

@@ -7,7 +7,7 @@ import pytest
 from mas_trade.agents.carry import RankCarry
 from mas_trade.cells_admm import objective, solve_cells, solve_reference
 from mas_trade.engine import run_engine
-from mas_trade.graph_admm import TOPOLOGIES, adjacency, is_connected, metropolis, mixing_rate, network, solve_cells_graph, solve_cells_resilient, wmsr_mix
+from mas_trade.graph_admm import TOPOLOGIES, adjacency, is_connected, metropolis, mixing_rate, network, extreme_share, solve_cells_graph, solve_cells_resilient
 from test_cells_admm import COUPLINGS, make
 from test_engine import CFG, make_panel_synth
 
@@ -101,16 +101,13 @@ def test_engine_graph_mode_matches_the_hub():
 
 
 # ------------------------------------------------------------------ resilience options (experiment 021)
-def test_wmsr_mix_is_plain_mixing_when_nothing_is_trimmed_and_ignores_an_outlier():
+def test_extreme_share_points_at_a_neighbour_that_lies():
     A = adjacency("complete", 5)
-    W = metropolis(A)
     S = np.random.default_rng(0).normal(size=(5, 3))
-    assert np.allclose(wmsr_mix(S, A, W, 0), W @ S)
-    S2 = S.copy()
-    S2[4] = 1e6                                                              # one neighbour sends nonsense
-    out = wmsr_mix(S2, A, W, 1)
-    lo, hi = S[:4].min(0), S[:4].max(0)
-    assert (out[:4] >= lo - 1e-12).all() and (out[:4] <= hi + 1e-12).all()   # honest values stay in the honest range
+    S[4] = S[:4].max(0) + 1.0                                                # one neighbour adds a lie to everything it sends
+    E = extreme_share(S, A)
+    assert (E[:4, 4] == 1.0).all()                                           # every honest agent sees it extreme everywhere
+    assert (E[:4, :4] < 1.0).all()
 
 
 def test_link_failures_still_reach_the_reference():

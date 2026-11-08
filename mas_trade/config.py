@@ -47,7 +47,6 @@ class EngineConfig:
                                 # others solve without it (graph: on the graph without that node)
     faulty: tuple = ()          # agent names that misbehave: they hold nothing; in graph mode they send false estimates
     attack: float = 0.0         # what a faulty agent adds to every value it sends (initial-equity units)
-    trim: int = 0               # graph only: F of the W-MSR (trimmed) mixing step; 0 = plain mixing
     detect: int = 0             # graph only: if > 0, detect and isolate a misbehaving agent (graph_admm.solve_cells_resilient):
                                 # flagged after this many iterations in a row of extreme values; isolated agents stay out
 

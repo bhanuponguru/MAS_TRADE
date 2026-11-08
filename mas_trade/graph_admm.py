@@ -85,27 +85,10 @@ def network(kind, M, seed=0):
     return metropolis(adjacency(kind, M, seed=seed))
 
 
-def wmsr_mix(S, A, W, F):
-    """One round of trimmed (W-MSR) mixing: for every coordinate, agent i ignores the F largest neighbour values above its
-    own and the F smallest below it, and keeps the Metropolis weight of an ignored neighbour on itself. With F = 0, or when
-    nothing is trimmed, it is W @ S. A misbehaving neighbour can then move i only inside the range of i's honest
-    neighbours, provided the graph is robust enough (lecture: (F+1, F+1)-robust)."""
-    out = np.empty_like(S)
-    for i in range(len(S)):
-        nb = np.flatnonzero(A[i])
-        if not len(nb):
-            out[i] = S[i]
-            continue
-        vals, own, w = S[nb], S[i], W[i, nb][:, None]
-        rank = np.argsort(np.argsort(vals, axis=0, kind="stable"), axis=0, kind="stable")
-        keep = ~(((rank < F) & (vals < own)) | ((rank >= len(nb) - F) & (vals > own)))
-        out[i] = W[i, i] * own + (w * keep * vals).sum(0) + (w * ~keep).sum(0) * own
-    return out
-
-
 def extreme_share(S, A):
     """E[i, j]: the share of coordinates in which neighbour j sent agent i the most extreme value beyond i's own, i.e. the
-    value W-MSR with F = 1 would discard first. An honest neighbour is extreme now and then; a neighbour that adds a lie to
+    value W-MSR with F = 1 would discard first (W-MSR's trimmed MIXING was rejected in experiment 021: it breaks the
+    optimiser's sum invariant; its code is at commit 4194d43). An honest neighbour is extreme now and then; a neighbour that adds a lie to
     everything it sends is extreme almost everywhere, every iteration."""
     E = np.zeros(A.shape)
     for i in range(len(S)):
@@ -151,7 +134,7 @@ def solve_cells_resilient(p, A, faulty=(), detect=50, share=0.9, **kw):
 
 
 def solve_cells_graph(p, W, rounds=1, rho=None, sigma=None, iters=3000, tol=1e-6, inner=10, relax=1.0, trace=None,
-                      link_fail=0.0, faulty=(), attack=None, trim=0, seed=0, detect=0, share=0.9):
+                      link_fail=0.0, faulty=(), attack=None, seed=0, detect=0, share=0.9):
     """Decentralised version of cells_admm.solve_cells on the graph with mixing matrix W (see the module docstring).
     rho and sigma as in the hub version (agreed once from the mean risk aversion). Over-relaxation is off by default: with slow
     mixing the hub's 1.7 oscillated. The run counts as converged only when the hub's residuals are small AND the agents'
@@ -163,7 +146,6 @@ def solve_cells_graph(p, W, rounds=1, rho=None, sigma=None, iters=3000, tol=1e-6
                  recomputed on the edges that are up, so the mixing stays doubly stochastic and the sum invariant holds);
       faulty     indices of misbehaving agents: they hold no position and send attack(values, k) instead of their state;
       attack     function (values of the faulty rows, iteration) -> what they send; default adds 1.0 to every entry;
-      trim       F of the W-MSR mixing step (wmsr_mix) used by every agent; 0 = plain mixing.
       detect     if > 0: agent i flags neighbour j when j sent the most extreme value (extreme_share) in at least `share` of
                  the coordinates of both the average estimate and the price for `detect` iterations in a row; an agent flagged
                  by more than half of its neighbours is isolated: the run stops and returns state['isolate'] (used by
@@ -176,7 +158,7 @@ def solve_cells_graph(p, W, rounds=1, rho=None, sigma=None, iters=3000, tol=1e-6
     A0 = np.asarray(W) > 0
     np.fill_diagonal(A0, False)
     rng = np.random.default_rng(seed)
-    plain = link_fail == 0 and not len(faulty) and trim == 0 and not detect
+    plain = link_fail == 0 and not len(faulty) and not detect
     streak = np.zeros((M, M), int)
     deg = A0.sum(1)
     ext = []
@@ -195,7 +177,7 @@ def solve_cells_graph(p, W, rounds=1, rho=None, sigma=None, iters=3000, tol=1e-6
                 S[faulty] = attack(V[faulty], k)
             if detect and rd == 0:
                 ext.append(extreme_share(S, A0))
-            V = wmsr_mix(S, A, metropolis(A) if link_fail > 0 else np.asarray(W, float), trim)
+            V = (metropolis(A) if link_fail > 0 else np.asarray(W, float)) @ S
         return V
 
     curv = 5.0 * float((np.mean(p.gamma) + p.vol_penalty) * max(np.mean(p.d), 1e-12))

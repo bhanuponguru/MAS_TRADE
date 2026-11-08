@@ -87,7 +87,7 @@ def run_engine(P, agents, cfg, solver=None, end=None):
     faulty = [names.index(nm) for nm in cfg.faulty]
     Ag = adjacency(cfg.topology, M, seed=cfg.topology_seed) if cfg.consensus == "graph" else None
     quarantine = set()                                          # agents isolated by the detector: out for the rest of the run
-    graph_kw = dict(rounds=cfg.gossip_rounds, link_fail=cfg.link_fail, trim=cfg.trim, attack=lambda v, it: v + cfg.attack)
+    graph_kw = dict(rounds=cfg.gossip_rounds, link_fail=cfg.link_fail, attack=lambda v, it: v + cfg.attack)
 
     def solve(prob, out_):
         """Solve with the agents that are not out (decision 0042 + experiment 021). Out agents hold nothing. In graph mode the
