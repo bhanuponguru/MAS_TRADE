@@ -1,3 +1,5 @@
+from dataclasses import replace
+
 import numpy as np
 import pandas as pd
 
@@ -81,6 +83,22 @@ def test_engine_respects_the_volatility_limit_ex_ante():
     realised = np.std(res.net[30:]) * np.sqrt(P.ppy)
     assert realised < 3 * CFG.target_vol                        # ex-ante limit; realised vol is noisy but of the same order
     assert res.unconverged == 0
+
+
+def test_volatility_limit_is_a_share_of_current_equity():
+    """Positions are in initial-equity units and Kelly stakes grow with wealth; the limit must scale with equity, or a
+    system that has doubled is held to half its mandate (the bug found on real data: realised vol fell from 20% to 8%)."""
+    drift = np.random.default_rng(5).normal(0, 1, 12)
+    P = make_panel_synth(n=500, N=12, drift=drift, strength=0.01)
+    cfg = replace(CFG, target_vol=0.05)                                       # tight enough to bind
+    res = run_engine(P, [RankCarry(days=10)], cfg)
+    eq = res.wealth[1:len(res.sys_vol) + 1].sum(1)
+    assert eq.max() > 1.5                                                     # equity has moved far from its start
+    binding = np.array(res.vol_price) > 0
+    assert binding.sum() >= 5
+    v = np.array(res.sys_vol)[binding]
+    assert abs(np.median(v) / cfg.target_vol - 1) < 0.03                    # held at the limit relative to equity ...
+    assert (v > 0.85 * cfg.target_vol).all() and (v < 1.15 * cfg.target_vol).all()   # ... also late, when equity is ~3x
 
 
 def test_kill_rule_acts_at_realistic_ic_not_only_extreme_ones():

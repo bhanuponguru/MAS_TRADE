@@ -40,6 +40,7 @@ class EngineResult:
     exante: list = field(default_factory=list)        # per rebalance: each agent's ex-ante annual Sharpe at its belief
     agent_gross: list = field(default_factory=list)   # per rebalance: each agent's gross position
     vol_price: list = field(default_factory=list)     # per rebalance: price of the system variance (0 = limit slack)
+    sys_vol: list = field(default_factory=list)       # per rebalance: ex-ante annual volatility of the system / equity
     turnover: float = 0.0               # annual sum |trade| / equity
     names: list = field(default_factory=list)
 
@@ -159,17 +160,19 @@ def run_engine(P, agents, cfg, solver=None, end=None):
                         margin=cfg.leverage * Wn, gross=cfg.gross * W.sum(), beta=beta, beta_band=cfg.beta_band * W.sum())
         exante = lambda X: np.sqrt(X @ (d * X) + (beta @ X) ** 2 * Fvar[0, 0]) * np.sqrt(P.ppy / H)
         g_eff = 1.0 / np.sum(1.0 / p.gamma)                     # curvature of the agents' own risk terms taken together
+        vol_cap = cfg.target_vol * W.sum()                      # the limit is a share of CURRENT equity (positions are in initial-equity units)
         p.vol_penalty = lam_prev                                # the volatility limit as a PRICE on system variance; start at last price
         sol = solve(p)
         v = exante(sol.x.sum(0))
         for _ in range(5):
-            if v <= cfg.target_vol * 1.02 and (p.vol_penalty == 0.0 or v >= cfg.target_vol * 0.98):
+            if v <= vol_cap * 1.02 and (p.vol_penalty == 0.0 or v >= vol_cap * 0.98):
                 break
-            p.vol_penalty = max(g_eff * ((1.0 + p.vol_penalty / g_eff) * v / cfg.target_vol - 1.0), 0.0)
+            p.vol_penalty = max(g_eff * ((1.0 + p.vol_penalty / g_eff) * v / vol_cap - 1.0), 0.0)
             sol = solve(p)
             v = exante(sol.x.sum(0))
         lam_prev = p.vol_penalty
         res.vol_price.append(p.vol_penalty)
+        res.sys_vol.append(v / W.sum())
         res.iters.append(sol.iters)
         res.unconverged += not sol.converged
         if not sol.converged:
@@ -181,8 +184,8 @@ def run_engine(P, agents, cfg, solver=None, end=None):
         res.exante.append(np.where(Sx > 0, (mu * x).sum(1) / np.sqrt(np.maximum(Sx, 1e-300)), 0.0) * np.sqrt(P.ppy / H))
         res.agent_gross.append(np.abs(x).sum(1))
         c_agent, c_total = allocate_cost(held[:, jj], x, p.fee, kappa)
-        turn += np.abs(x.sum(0) - held[:, jj].sum(0)).sum()
         eq_pre = W.sum()                                       # equity before this rebalance's cost
+        turn += np.abs(x.sum(0) - held[:, jj].sum(0)).sum() / eq_pre
         W = W - c_agent
         account[t] -= c_agent
         out["cost"][t] = c_total / eq_pre

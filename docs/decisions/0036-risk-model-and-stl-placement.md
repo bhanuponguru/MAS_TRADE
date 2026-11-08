@@ -16,6 +16,9 @@ The v1 shield scaled the finished portfolio toward cash after the fact ([0025](0
 - The calibration spec acts on the upper confidence bound of the slope, because a card-sized belief has a slope standard error above 1 over 3,000 observations; the sanity spec tests the volatility-standardised belief. Both were found by wiring them into the real-data engine.
 - Solver notes: relative stopping rule (1e-6), over-relaxation 1.7, penalty 5x; the net position is accurate to about 1e-6, the split between agents less so.
 
+## Amendment (2026-11-08, bug fix): the volatility limit is a share of current equity
+The ex-ante volatility of the system was compared with `target_vol` in units of the INITIAL equity, while cell positions are in those units and Kelly stakes grow with wealth; the gross cap and beta band were already scaled by current equity. The effective limit was therefore 20% / (equity multiple): about 7-8% of equity by 2025 on the daily carry + momentum run. The engine now uses `target_vol x current equity`. This restores the decision as written, it is not a new limit; results of experiments 013-017 were computed before the fix. Rollback: commit 1febff1.
+
 ## Consequences
 More specs mean more tunables; each is justified up front and logged.
 
