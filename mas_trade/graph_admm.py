@@ -81,11 +81,12 @@ def network(kind, M, seed=0):
     return metropolis(adjacency(kind, M, seed=seed))
 
 
-def solve_cells_graph(p, W, rounds=1, rho=None, sigma=None, iters=3000, tol=1e-6, inner=10, relax=1.0):
+def solve_cells_graph(p, W, rounds=1, rho=None, sigma=None, iters=3000, tol=1e-6, inner=10, relax=1.0, trace=None):
     """Decentralised version of cells_admm.solve_cells on the graph with mixing matrix W (see the module docstring).
     rho and sigma as in the hub version (agreed once from the mean risk aversion). Over-relaxation is off by default: with slow
     mixing the hub's 1.7 oscillated. The run counts as converged only when the hub's residuals are small AND the agents'
-    estimates of the average and their prices agree."""
+    estimates of the average and their prices agree. trace: an optional list that receives the net position x.sum(0) and the
+    disagreement after every iteration (for the communication-budget experiment)."""
     M, N = p.mu.shape
     curv = 5.0 * float((np.mean(p.gamma) + p.vol_penalty) * max(np.mean(p.d), 1e-12))
     rho = curv if rho is None else rho
@@ -117,6 +118,8 @@ def solve_cells_graph(p, W, rounds=1, rho=None, sigma=None, iters=3000, tol=1e-6
         disagree_x = float(np.linalg.norm(s - xbar, axis=1).max())
         disagree_u = float(rho * np.linalg.norm(u - ubar, axis=1).max())
         x, z = xn, zn
+        if trace is not None:
+            trace.append((xn.sum(0).copy(), max(disagree_x / scale_p, disagree_u / scale_d)))
         ok = prim <= tol * scale_p and dual <= tol * scale_d and disagree_x <= tol * scale_p and disagree_u <= tol * scale_d
         if ok:
             break
