@@ -36,6 +36,11 @@ class EngineConfig:
     calibration_floor: float = 0.5   # agent spec: slope of realised returns on its beliefs at least this; the margin scales its Kelly fraction
     calibration_window: int = 52     # rebalances of past beliefs behind the slope
     calibration_min_obs: int = 1500  # (period, coin) observations needed before the spec acts
+    # coordination of the joint problem (decision 0042)
+    consensus: str = "hub"      # "hub": one node averages and prices (cells_admm); "graph": neighbours only (graph_admm)
+    topology: str = "complete"  # graph of the agents when consensus = "graph": complete, ring, line, star, random
+    gossip_rounds: int = 1      # neighbour-averaging rounds per ADMM iteration (graph only)
+    topology_seed: int = 0      # seed of the "random" topology
 
     @property
     def ppy(self):

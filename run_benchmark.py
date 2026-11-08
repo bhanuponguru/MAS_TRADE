@@ -30,9 +30,12 @@ ap.add_argument("--unseal", action="store_true")
 ap.add_argument("--boot", type=int, default=1000)
 ap.add_argument("--label", default=None, help="name of this variant in the trial log")
 ap.add_argument("--tag", default=None, help="output folder name under results/ (default: bar_universe_agents)")
+ap.add_argument("--consensus", default="hub", choices=["hub", "graph"], help="joint solver: one hub, or neighbours only (decision 0042)")
+ap.add_argument("--topology", default="complete", help="agent graph when --consensus graph: complete, ring, line, star, random")
+ap.add_argument("--rounds", type=int, default=1, help="gossip rounds per ADMM iteration (graph only)")
 args = ap.parse_args()
 
-cfg = EngineConfig.for_tier(args.bar)
+cfg = EngineConfig.for_tier(args.bar, consensus=args.consensus, topology=args.topology, gossip_rounds=args.rounds)
 P = load_crypto_panel(args.bar, args.universe)
 cut = P.dates[-1] - pd.DateOffset(months=cfg.holdout_months)
 end = len(P.dates) if args.unseal else int((P.dates < cut).sum())
@@ -52,7 +55,7 @@ ann = bars.mean() * cfg.ppy
 print("\nabsolute performance (net of fees, impact and funding):")
 print(pd.Series({**{k: st[k] for k in ("CAGR", "Vol", "Sharpe", "MaxDD", "Sortino", "Calmar")}, "Sharpe5%": lo, "Sharpe95%": hi,
                  "Turnover": res.turnover, "netExp": res.exposure.mean(), "gross": res.gross.mean(),
-                 "cells not converged": res.unconverged, "worst unconverged residual": max(res.residuals, default=0.0)}).round(3).to_string())
+                 "cells not converged": res.unconverged, "solver iterations (mean)": float(np.mean(res.iters)) if res.iters else 0.0, "worst unconverged residual": max(res.residuals, default=0.0)}).round(3).to_string())
 print("\nannualised P&L components:")
 print(ann.drop("net").round(4).to_string(), "\n(sum", round(float(ann[["market", "selection", "funding", "cost"]].sum()), 4), ")")
 acc = pd.DataFrame(res.account, index=res.dates, columns=res.names)

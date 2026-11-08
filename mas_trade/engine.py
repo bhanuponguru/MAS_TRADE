@@ -15,6 +15,7 @@ from . import stl
 from .agents.base import Ctx
 from .attribution import allocate_cost
 from .cells_admm import CellProblem, solve_cells
+from .graph_admm import network, solve_cells_graph
 from .market import apply_floor, limited_liability
 from .risk import betas
 
@@ -78,7 +79,13 @@ def run_engine(P, agents, cfg, solver=None, end=None):
     beta_last = np.ones(N)                                      # last known beta of every coin (for coins held but untradable)
     hist_abs = [deque(maxlen=cfg.calibration_window) for _ in agents]    # past non-zero |beliefs|: the sanity spec
     calib = [deque(maxlen=cfg.calibration_window) for _ in agents]       # (belief, realised return) pairs: the calibration spec
-    solve = lambda prob, **kw: solve_cells(prob, **(solver or {}), **kw)
+    if cfg.consensus == "graph":                                # decision 0042: agents talk only to their neighbours
+        Wg = network(cfg.topology, M, seed=cfg.topology_seed)
+        solve = lambda prob, **kw: solve_cells_graph(prob, Wg, rounds=cfg.gossip_rounds, **(solver or {}), **kw)
+    elif cfg.consensus == "hub":
+        solve = lambda prob, **kw: solve_cells(prob, **(solver or {}), **kw)
+    else:
+        raise ValueError(f"unknown consensus {cfg.consensus!r}")
     for k, t in enumerate(rebal):
         e = rebal[k + 1] if k + 1 < len(rebal) else n
         if prev_t is not None:                                  # the period that just ended: calibrate every agent
