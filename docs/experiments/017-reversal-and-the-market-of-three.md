@@ -11,7 +11,16 @@ As decision 0040. In short: admission needs (a) stand-alone net Sharpe lower bou
 
 **Expectation, stated up front.** The legacy reversal lost after costs, so the likely result is that reversal fails (a) on 1d at least; the IC is real but short-lived (IC at twice the holding period falls to 0.003 on 1d) while the engine's 1d rebalance is 14 days. On 1h and 4h the IC is more persistent. The market of three is more informative about the structure than about reversal.
 
-## Status when work was stopped (2026-11-08): INCOMPLETE, no verdict on the market yet
+## Result (finished in [experiment 018](018-rerun-after-volatility-limit-fix.md), on the corrected engine)
+All six runs were repeated with the volatility-limit fix and the missing 1h market of three was run; `compare_reversal.py` (with a fix: it read the IC from the wrong table of the run log; the script had not been run before) gives:
+- **Reversal is NOT admitted:** (a) FAIL (net Sharpe -0.66 / -1.17 / -0.99, lower bound below 0 on every bar); (b) PASS (rank IC 0.025 / 0.042 / 0.046, t 1.5 / 4.4 / 7.3); (c) FAIL (alpha against BTC, carry and H2 -12% to -23% a year).
+- **Market acceptance FAILS:** market of three minus market of two -0.14 / -0.14 / -0.15 (significantly negative on 1h).
+- **Reported:** market of three minus the fixed inverse-volatility blend of the three stand-alone runs +0.35 (-0.17 to +0.84) / **+0.86 (+0.31 to +1.35) / +0.88 (+0.34 to +1.39)**: the wealth market cuts reversal to its 2% floor, the blend cannot. Annual cost: market 2.9% / 2.7% / 2.4%, blend 2.5% / 3.5% / 3.5%.
+- Diagnostic: the IC is highest in the middle liquidity tercile on every bar, so the card's "stronger in less liquid coins" mechanism is not supported.
+- Corrected realised volatility of reversal alone is 24-29% (it was about 45% under the bug; most of the "risk model underestimates risk" reading was the bug).
+Table: `data/017/comparison.csv`. The code of `RankReversal` is kept for now as the template of a residual (beta-removed) rank agent; delete it if no later agent uses it.
+
+## Before the fix (kept for the record)
 Done: reversal alone on 1d, 4h, 1h; market of three on 1d and 4h. **Missing: the market of three on 1h**, so market acceptance, gate (c) and the blend comparison are not decided here. The runs of reversal alone were executed twice (a reboot erased the first logs); the repeat reproduced every number, and the trial log therefore holds each of them twice (count once for the deflated Sharpe). Logs: `results/<bar>_broad_RankReversal/run.log`.
 
 **Reversal alone (the stand-alone gates, from the run logs):**

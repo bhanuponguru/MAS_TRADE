@@ -4,6 +4,8 @@ Date: 2026-11-07   Decisions: [0033](../decisions/0033-two-level-mas.md), [0038]
 Code: branch `engine-rebuild` (`mas_trade/engine.py`, `agents/carry.py`, `run_benchmark.py`)
 Command: `uv run python run_benchmark.py --bar 1d|4h|1h [--label NAME]` (dev period only, holdout sealed). Result tables: `data/013/`.
 
+> **Re-run on 2026-11-08 ([experiment 018](018-rerun-after-volatility-limit-fix.md)):** the numbers below were computed with a volatility-limit bug (limit measured against the initial, not the current, equity). Corrected numbers and re-applied verdicts are in 018.
+
 ## Question
 Does the new engine (agent beliefs, joint cell ADMM with the cost of the net trade, accounts) reproduce the legacy carry result (net Sharpe about 1.0 on every bar size)? The rank-carry agent is rung 0 of the carry ladder: long low-funding, short high-funding coins by rank, 14-day trailing funding.
 

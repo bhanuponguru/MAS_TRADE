@@ -4,6 +4,8 @@ Date: 2026-11-07   Decisions: [0033](../decisions/0033-two-level-mas.md), [0034]
 Code: `agents/momentum.py`, `engine.py` (per-agent neutrality, priced volatility limit, specs), `compare_runs.py`, `run_benchmark.py`.
 Commands: `uv run python run_benchmark.py --bar B --agents RankCarry|TSMomentum|RankCarry TSMomentum --label NAME` for B in 1d, 4h, 1h, then `uv run python compare_runs.py`.
 
+> **Re-run on 2026-11-08 ([experiment 018](018-rerun-after-volatility-limit-fix.md)):** the numbers below were computed with a volatility-limit bug (limit measured against the initial, not the current, equity). Corrected numbers and re-applied verdicts are in 018.
+
 ## Question
 Does time-series momentum (H2) add something that carry does not have, and does a market of the two agents beat carry alone?
 

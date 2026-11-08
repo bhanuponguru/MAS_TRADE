@@ -21,6 +21,7 @@ load = lambda bar, tag: pd.read_csv(Path("results") / f"{bar}_broad_{tag}" / "ba
 
 def ic_t(bar):
     text = (Path("results") / f"{bar}_broad_RankReversal" / "run.log").read_text()
+    text = text[text.index("realised skill"):]                  # the skill table, not the per-agent P&L table printed before it
     m = re.search(r"^RankReversal\s+(-?[\d.]+)\s+(-?[\d.]+)", text, re.M)
     return float(m.group(1)), float(m.group(2))
 
