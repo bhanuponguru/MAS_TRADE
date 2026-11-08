@@ -1,0 +1,7 @@
+topology,M,rounds,seed,vol,edges,lambda2_W,algebraic_connectivity,iterations,converged,hub_iterations,messages,net_error
+ring,8,3,0,True,8,0.804738,0.585786,797,True,165,38256,0.0
+ring,8,3,1,True,8,0.804738,0.585786,904,True,542,43392,0.0
+ring,8,3,2,True,8,0.804738,0.585786,1076,True,749,51648,0.0
+line,8,3,0,True,7,0.949253,0.152241,4000,False,165,168000,0.0
+line,8,3,1,True,7,0.949253,0.152241,4000,False,542,168000,2e-06
+line,8,3,2,True,7,0.949253,0.152241,4000,False,749,168000,4e-06
