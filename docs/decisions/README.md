@@ -66,6 +66,7 @@ Records 0001-0031 describe the legacy implementation (tag `legacy-v1-v2`). Those
 | [0037](0037-extended-data-store.md) | Extended data store: all kline columns, premium index, spot, hourly metrics; audits | Accepted | `data.py`, `download_data.py` | [exp 011](../experiments/011-data-audit.md) |
 | [0038](0038-beliefs-calibrated-to-the-hypothesis-card.md) | Belief scale from the hypothesis card, evidence only switches an agent off (kill rule); volatility limit through risk aversion | Accepted | `agents/base.py`, `engine.py` | [exp 013](../experiments/013-carry-baseline-on-real-data.md) |
 | [0039](0039-timing-inside-the-belief-of-h2.md) | Timing inside H2's belief: two mechanism-based states, shrunk and sign-constrained | Rejected (code deleted) | none (commit 394314e) | [exp 016](../experiments/016-timing-inside-h2.md) |
+| [0040](0040-reversal-agent-and-admission-gate.md) | H4 residual reversal as the third agent, and the full admission gate (stand-alone Sharpe, IC, alpha vs the others) | Accepted (agent not admitted: loses net of costs, experiment 017 unfinished) | `agents/reversal.py` | [exp 017](../experiments/017-reversal-and-the-market-of-three.md) |
 
 ## Template
 ```
