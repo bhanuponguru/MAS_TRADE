@@ -14,6 +14,7 @@ import pandas as pd
 from mas_trade.agents.carry import RankCarry
 from mas_trade.agents.momentum import TimeSeriesMomentum
 from mas_trade.agents.reversal import RankReversal
+from mas_trade import supervisor
 from mas_trade.config import EngineConfig
 from mas_trade.diagnostics import log_trial
 from mas_trade.engine import run_engine
@@ -40,12 +41,16 @@ ap.add_argument("--offline", nargs=3, action="append", default=[], metavar=("AGE
                 help="agent AGENT is offline from day FIRST to day LAST (YYYY-MM-DD); repeatable (experiment 021)")
 ap.add_argument("--faulty", nargs="+", default=[], help="agent names that misbehave: hold nothing, send false values in graph mode")
 ap.add_argument("--attack", type=float, default=0.0, help="what a faulty agent adds to every value it sends")
+ap.add_argument("--faulty-window", nargs=2, default=(), metavar=("FIRST", "LAST"), help="the faulty agents misbehave only between these days")
+ap.add_argument("--attack-kind", default="constant", choices=["constant", "noise"])
+ap.add_argument("--safety", default="off", choices=["off", "derisk", "hold", "both"], help="safety supervisor (decision 0044)")
 ap.add_argument("--detect", type=int, default=0, help="graph only: detect and isolate a misbehaving agent after this many iterations")
 args = ap.parse_args()
 
 cfg = EngineConfig.for_tier(args.bar, consensus=args.consensus, topology=args.topology, gossip_rounds=args.rounds,
                             link_fail=args.link_fail, offline=tuple(tuple(o) for o in args.offline), faulty=tuple(args.faulty),
-                            attack=args.attack, detect=args.detect)
+                            attack=args.attack, detect=args.detect,
+                            faulty_window=tuple(args.faulty_window), attack_kind=args.attack_kind, safety=args.safety)
 P = load_crypto_panel(args.bar, args.universe)
 cut = P.dates[-1] - pd.DateOffset(months=cfg.holdout_months)
 end = len(P.dates) if args.unseal else int((P.dates < cut).sum())
@@ -100,7 +105,12 @@ out.mkdir(parents=True, exist_ok=True)
 bars.assign(btc=btc, **{f"acc_{c}": acc_ret[c] for c in acc_ret}).to_csv(out / "bars.csv")
 if res.iters:                                                   # per rebalance: solver work, risk and isolation (experiments 020-021)
     pd.DataFrame({"date": P.dates[res.solved], "iterations": res.iters, "sys_vol": res.sys_vol,
-                  "isolated": [" ".join(res.names[i] for i in q) for q in res.isolated]}).to_csv(out / "rebal.csv", index=False)
+                  "isolated": [" ".join(res.names[i] for i in q) for q in res.isolated], "converged": res.converged,
+                  "rel_res": res.rel_res, "dd_scale": res.dd_scale, "held": res.held}).to_csv(out / "rebal.csv", index=False)
+    rec = supervisor.safety_record(res, cfg)                    # STL safety monitor (decision 0044)
+    rec.to_csv(out / "safety.csv")
+    print("\nSTL safety record (robustness > 0 = satisfied; windows = stress periods, decision 0044):")
+    print(supervisor.window_summary(rec, ppy=cfg.ppy).round(3).to_string())
 if cfg.faulty or cfg.detect or cfg.offline or cfg.link_fail:
     first = next((k for k, q in enumerate(res.isolated) if q), None)
     print(f"resilience: isolated at the end {[res.names[i] for i in res.isolated[-1]] if res.isolated else []}; "

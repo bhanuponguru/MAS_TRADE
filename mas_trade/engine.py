@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
-from . import stl
+from . import stl, supervisor
 from .agents.base import Ctx
 from .attribution import allocate_cost
 from .cells_admm import CellProblem, CellSolution, solve_cells
@@ -44,6 +44,11 @@ class EngineResult:
     sys_vol: list = field(default_factory=list)       # per rebalance: ex-ante annual volatility of the system / equity
     isolated: list = field(default_factory=list)      # per solved rebalance: agents isolated by the detector so far (experiment 021)
     solved: list = field(default_factory=list)        # bars of the rebalances that were solved (iters, sys_vol, isolated align with it)
+    solve_dates: list = field(default_factory=list)   # their dates
+    rel_res: list = field(default_factory=list)       # relative residual of each solve
+    converged: list = field(default_factory=list)
+    dd_scale: list = field(default_factory=list)      # multiplier of the volatility target from the drawdown spec (1 = none)
+    held: list = field(default_factory=list)          # True when the supervisor held positions (unsafe solve)
     turnover: float = 0.0               # annual sum |trade| / equity
     names: list = field(default_factory=list)
 
@@ -84,10 +89,19 @@ def run_engine(P, agents, cfg, solver=None, end=None):
     if cfg.consensus not in ("hub", "graph"):
         raise ValueError(f"unknown consensus {cfg.consensus!r}")
     names = [a.name for a in agents]
-    faulty = [names.index(nm) for nm in cfg.faulty]
+    faulty_all = [names.index(nm) for nm in cfg.faulty]
+    faulty = list(faulty_all)                                   # the agents misbehaving at the current rebalance
     Ag = adjacency(cfg.topology, M, seed=cfg.topology_seed) if cfg.consensus == "graph" else None
     quarantine = set()                                          # agents isolated by the detector: out for the rest of the run
-    graph_kw = dict(rounds=cfg.gossip_rounds, link_fail=cfg.link_fail, attack=lambda v, it: v + cfg.attack)
+    if cfg.attack_kind == "noise":
+        attack = lambda v, it: v + np.random.default_rng(it + 7919 * len(res.iters)).normal(0.0, cfg.attack, v.shape)
+    else:
+        attack = lambda v, it: v + cfg.attack
+    graph_kw = dict(rounds=cfg.gossip_rounds, link_fail=cfg.link_fail, attack=attack)
+    hold = cfg.safety in ("hold", "both")
+    derisk = cfg.safety in ("derisk", "both")
+    if cfg.safety not in ("off", "hold", "derisk", "both"):
+        raise ValueError(f"unknown safety mode {cfg.safety!r}")
 
     def solve(prob, out_):
         """Solve with the agents that are not out (decision 0042 + experiment 021). Out agents hold nothing. In graph mode the
@@ -177,6 +191,7 @@ def run_engine(P, agents, cfg, solver=None, end=None):
         cap = np.where(is_tradable, cfg.participation * adv_j / cfg.aum, 0.0)[None, :].repeat(M, 0)
         day = P.dates[t].strftime("%Y-%m-%d")
         out_ = {names.index(nm) for nm, a0, a1 in cfg.offline if a0 <= day <= a1}    # agents that are offline now
+        faulty[:] = faulty_all if not cfg.faulty_window or cfg.faulty_window[0] <= day <= cfg.faulty_window[1] else []
         for i in out_ | set(faulty):
             cap[i] = 0.0
         outside = {}                                            # an agent may only hold the coins its card names
@@ -199,11 +214,14 @@ def run_engine(P, agents, cfg, solver=None, end=None):
                         margin=cfg.leverage * Wn, gross=cfg.gross * W.sum(), beta=beta, beta_band=cfg.beta_band * W.sum())
         exante = lambda X: np.sqrt(X @ (d * X) + (beta @ X) ** 2 * Fvar[0, 0]) * np.sqrt(P.ppy / H)
         g_eff = 1.0 / np.sum(1.0 / p.gamma)                     # curvature of the agents' own risk terms taken together
-        vol_cap = cfg.target_vol * W.sum()                      # the limit is a share of CURRENT equity (positions are in initial-equity units)
+        dd_scale = supervisor.drawdown_scale(out["net"][:t], cfg) if derisk else 1.0   # bars before t only
+        vol_cap = cfg.target_vol * dd_scale * W.sum()           # the limit is a share of CURRENT equity (positions are in initial-equity units)
         p.vol_penalty = lam_prev                                # the volatility limit as a PRICE on system variance; start at last price
         sol = solve(p, out_)
         v = exante(sol.x.sum(0))
         for _ in range(5):
+            if hold and supervisor.unsafe(sol, cfg):            # no point searching the price of a solve we will not trade
+                break
             if v <= vol_cap * 1.02 and (p.vol_penalty == 0.0 or v >= vol_cap * 0.98):
                 break
             p.vol_penalty = max(g_eff * ((1.0 + p.vol_penalty / g_eff) * v / vol_cap - 1.0), 0.0)
@@ -215,10 +233,16 @@ def run_engine(P, agents, cfg, solver=None, end=None):
         res.iters.append(sol.iters)
         res.isolated.append(sorted(quarantine))
         res.solved.append(int(t))
+        res.solve_dates.append(P.dates[t])
+        res.rel_res.append(float(sol.state.get("rel_res", np.nan)))
+        res.converged.append(bool(sol.converged))
+        res.dd_scale.append(dd_scale)
+        held_now = hold and supervisor.unsafe(sol, cfg)
+        res.held.append(held_now)
         res.unconverged += not sol.converged
         if not sol.converged:
             res.residuals.append(max(sol.primal_res, sol.dual_res))
-        x = sol.x.copy()
+        x = held[:, jj].copy() if held_now else sol.x.copy()   # hold: keep the drifted positions, trade nothing
         for i, mask in outside.items():                         # the cell solve respects the cap to its tolerance; make it exact
             x[i, mask] = 0.0
         Sx = np.array([[xi @ (d * xi) + (beta @ xi) ** 2 * Fvar[0, 0] for xi in x]])[0]

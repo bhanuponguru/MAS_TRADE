@@ -49,6 +49,16 @@ class EngineConfig:
     attack: float = 0.0         # what a faulty agent adds to every value it sends (initial-equity units)
     detect: int = 0             # graph only: if > 0, detect and isolate a misbehaving agent (graph_admm.solve_cells_resilient):
                                 # flagged after this many iterations in a row of extreme values; isolated agents stay out
+    faulty_window: tuple = ()   # (first day, last day): the faulty agents misbehave only then (empty = the whole run)
+    attack_kind: str = "constant"   # "constant": add `attack`; "noise": add normal noise with standard deviation `attack`
+    # safety supervisor (decision 0044, experiment 022); limits from the mandate of decision 0026
+    safety: str = "off"         # "off", "derisk" (shrink the volatility target as the drawdown budget is used), "hold" (do not
+                                # trade on a solve that did not converge), "both"
+    dd_limit: float = 0.15      # drawdown spec: drawdown from the peak of the last dd_days >= -dd_limit (0026)
+    dd_days: float = 365.0
+    safety_buffer: float = 0.5  # start de-risking with this share of the drawdown budget left (0026)
+    safety_min_scale: float = 0.2   # never below this share of the volatility target (0026)
+    hold_tol: float = 1e-3      # hold: a solve is unsafe when it did not converge and its relative residual exceeds this
 
     @property
     def ppy(self):

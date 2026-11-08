@@ -227,4 +227,5 @@ def solve_cells_graph(p, W, rounds=1, rho=None, sigma=None, iters=3000, tol=1e-6
               "neutral": [a.nu.copy() for a in agents]}
     return CellSolution(x=x, X=x.sum(0), prices=prices, iters=k, converged=ok, primal_res=prim, dual_res=dual,
                         state={"disagreement": max(disagree_x / scale_p, disagree_u / scale_d), "rounds": int(rounds),
-                               "isolate": isolate})
+                               "isolate": isolate,
+                               "rel_res": max(prim / scale_p, dual / scale_d, disagree_x / scale_p, disagree_u / scale_d)})

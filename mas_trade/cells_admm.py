@@ -272,7 +272,8 @@ def solve_cells(p, rho=None, sigma=None, iters=3000, tol=1e-6, inner=10, warm=No
               "vol": p.vol_penalty,
               "neutral": [a.nu.copy() for a in agents]}
     return CellSolution(x=x, X=x.sum(0), prices=prices, iters=k, converged=prim <= tol * scale_p and dual <= tol * scale_d,
-                        primal_res=prim, dual_res=dual, state={"x": x.copy(), "u": u.copy()})
+                        primal_res=prim, dual_res=dual,
+                        state={"x": x.copy(), "u": u.copy(), "rel_res": max(prim / scale_p, dual / scale_d)})
 
 
 def solve_uncoupled(p):
