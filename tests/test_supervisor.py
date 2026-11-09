@@ -57,6 +57,9 @@ def test_hold_refuses_to_trade_on_a_corrupted_solve_and_only_then():
     for (_, x), h, t in zip(res.targets[-len(res.held):], res.held, res.solved):
         if h:
             assert res.cost[t - res.rebal[0]] == 0.0                              # nothing traded
+    sv = np.asarray(res.sys_vol)[-len(res.held):]
+    hv = sv[np.asarray(res.held)]                                    # the monitor records the KEPT position's volatility
+    assert hv.max() <= 1.5 * cfg.target_vol, hv
 
 
 def test_safety_record_and_window_summary():

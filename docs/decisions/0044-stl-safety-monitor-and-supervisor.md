@@ -1,6 +1,6 @@
 # 0044. STL safety monitor and supervisor of the system
 
-Status: **Proposed (implementation; experiment 022 decides)**   Date: 2026-11-08   Where: `supervisor.py`, `engine.py`, `config.py` (`safety`, `dd_limit`, `dd_days`, `safety_buffer`, `safety_min_scale`, `hold_tol`, `faulty_window`, `attack_kind`), `cells_admm.py` / `graph_admm.py` (`state["rel_res"]`), `run_benchmark.py`   Evidence: `tests/test_supervisor.py`; experiment 022
+Status: **Accepted (experiment 022: monitor in every run; derisk passes on 4h and 1h, fails its breach-count gate on 1d; hold catches the stealthy liar but also freezes on slow honest solves, so its limit needs a follow-up before use)**   Date: 2026-11-08   Where: `supervisor.py`, `engine.py`, `config.py` (`safety`, `dd_limit`, `dd_days`, `safety_buffer`, `safety_min_scale`, `hold_tol`, `faulty_window`, `attack_kind`), `cells_admm.py` / `graph_admm.py` (`state["rel_res"]`), `run_benchmark.py`   Evidence: `tests/test_supervisor.py`; experiment 022
 
 ## Context
 The proposal promises an STL safety monitor and a supervisor. Decision 0036 placed STL specs at the inputs (belief sanity), the agents (calibration scaling the Kelly fraction) and the system (the volatility limit and beta band as PRICES inside the optimiser), and listed "reporting (robustness traces)", which was never built. Two gaps are left: (1) there is no record over time of whether the system's specs hold, so nobody can see the safety margin during a crash; (2) nothing reacts to a drawdown (the priced limits act on ex-ante risk, not on losses), and experiment 021 showed that a misbehaving agent who sends noise is not detected and makes the solver produce a wrong portfolio that does not converge.
@@ -33,3 +33,6 @@ Option 3, behind `EngineConfig.safety = "off" | "derisk" | "hold" | "both"`, def
 
 ## Rollback
 Leave `safety = "off"` (nothing changes) or delete `supervisor.py`, its fields and its tests; the monitor output files can be ignored.
+
+## Outcome (experiment 022)
+A1 fails on 1h only (ex-ante volatility within 1.05 x target at 94.3% of rebalances; the solver-health spec always holds); A2 passes on 4h and 1h and fails on 1d (shallower worst drawdown everywhere, but more bars below -15% on 1d); B1 fails (all six attacked rebalances held, but also nine slow honest solves in 2025). A recording bug (the volatility of the rejected solve logged on held rebalances) was fixed. Defaults stay "off"; the threshold of hold is the open question.

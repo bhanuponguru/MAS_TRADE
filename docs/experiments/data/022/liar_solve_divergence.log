@@ -1,0 +1,7 @@
+call 300 (iter ~100) cum 6.4s max 0.12s |m| 0.41 lam 0.0058 0.033
+call 600 (iter ~200) cum 32.7s max 0.15s |m| 0.4 lam 0.00623 0.0206
+call 900 (iter ~300) cum 70.2s max 0.17s |m| 2.68 lam 0.455 0.38
+call 1200 (iter ~400) cum 96.7s max 0.17s |m| 7.82 lam 1.44 1.12
+call 1500 (iter ~500) cum 137.3s max 0.30s |m| 16.9 lam 3.36 2.36
+call 1800 (iter ~600) cum 181.8s max 0.33s |m| 29.3 lam 6.37 3.84
+call 2100 (iter ~700) cum 229.1s max 0.33s |m| 44.2 lam 10.2 5.53

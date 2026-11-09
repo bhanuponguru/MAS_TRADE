@@ -228,6 +228,9 @@ def run_engine(P, agents, cfg, solver=None, end=None):
             sol = solve(p, out_)
             v = exante(sol.x.sum(0))
         lam_prev = p.vol_penalty
+        held_now = hold and supervisor.unsafe(sol, cfg)
+        if held_now:                                            # the monitor records the position actually kept, not the rejected solve
+            v = exante(held[:, jj].sum(0))
         res.vol_price.append(p.vol_penalty)
         res.sys_vol.append(v / W.sum())
         res.iters.append(sol.iters)
@@ -237,7 +240,6 @@ def run_engine(P, agents, cfg, solver=None, end=None):
         res.rel_res.append(float(sol.state.get("rel_res", np.nan)))
         res.converged.append(bool(sol.converged))
         res.dd_scale.append(dd_scale)
-        held_now = hold and supervisor.unsafe(sol, cfg)
         res.held.append(held_now)
         res.unconverged += not sol.converged
         if not sol.converged:
