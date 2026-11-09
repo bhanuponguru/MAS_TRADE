@@ -1,0 +1,9 @@
+case,run,reference,Sharpe,CAGR,Vol,MaxDD,Calmar,final_equity,ref_Sharpe,equity_vs_ref,committed_sharpe,missing
+"links fail 30%, complete r1",021_links_complete_r1,020_eight_hub,1.23944,0.25985,0.20307,-0.29798,0.87205,3.57719,1.2396,-0.00022,1.239,
+"links fail 30%, ring r3",021_links_ring_r3,020_eight_hub,1.23892,0.2597,0.20305,-0.29798,0.87153,3.57481,1.2396,-0.00089,1.239,
+"RankCarry7 offline May-Aug 2022, complete r1",021_offline_complete_r1,021_offline_hub,1.22509,0.2533,0.20082,-0.29519,0.85807,3.4757,1.22523,-0.00018,1.225,
+"RankCarry7 offline May-Aug 2022, ring r3",021_offline_ring_r3,021_offline_hub,1.2248,0.25321,0.20081,-0.2952,0.85776,3.47441,1.22523,-0.00055,1.225,
+"detector on, no liar, complete r1",021_detect_clean,020_eight_hub,1.2394,0.25985,0.20307,-0.29797,0.87205,3.5771,1.2396,-0.00025,1.239,
+"constant liar + detector, complete r1",021_liar_detect,021_liar_hub,1.1817,0.24771,0.20515,-0.31286,0.79176,3.39105,1.18201,-0.00037,1.182,
+"noise liar May-Jul 2022, no defence",022_three_liar,022_three_clean,,,,,,,,,,True
+"noise liar May-Jul 2022, hold",022_three_liar_hold,022_three_clean,1.03312,0.20304,0.19789,-0.21888,0.92765,2.77316,1.25711,-0.22094,,
