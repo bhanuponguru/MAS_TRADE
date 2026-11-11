@@ -1,0 +1,3 @@
+Saved runs made before the correction of the volatility limit (and the runs of the rejected timing variant).
+Superseded by the corrected runs of experiment 018, which were made on another machine. Kept, not deleted, because they
+cannot be regenerated without re-running. results/ is gitignored.

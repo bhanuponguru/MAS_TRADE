@@ -1,0 +1,48 @@
+/home/bhanu/MyProjects/MAS_Trade/run_benchmark.py:59: Pandas4Warning: Starting with pandas version 4.0 all arguments of sum will be keyword-only.
+  equity_prev = 1.0 + np.r_[0.0, np.cumsum(acc.sum(1).values)[:-1]]
+4h/broad: 15006 bars x 243 symbols, H=30 bars, 2020-04-30 -> 2025-11-05  [holdout sealed]
+
+absolute performance (net of fees, impact and funding):
+CAGR                          -0.452
+Vol                            0.459
+Sharpe                        -1.078
+MaxDD                         -0.967
+Sortino                       -1.480
+Calmar                        -0.467
+Sharpe5%                      -1.683
+Sharpe95%                     -0.442
+Turnover                      39.694
+netExp                        -0.005
+gross                          2.203
+cells not converged            0.000
+worst unconverged residual     0.000
+
+annualised P&L components:
+price       -0.3184
+market      -0.0166
+selection   -0.3018
+funding     -0.0214
+cost        -0.1553 
+(sum -0.4952 )
+
+per-agent account P&L (annualised, units of initial equity), ex-ante Sharpe at its belief, mean gross, final wealth share:
+                pnl  ex-ante Sharpe  gross  wealth share
+RankReversal -0.175           1.449  0.741           1.0
+specs: coin beliefs zeroed by the sanity spec 0; calibration multiplier min 0.20; volatility limit binding at 19% of rebalances
+
+realised skill of each agent (rank IC for cross-sectional agents, pooled slope of returns on the signal for time-series ones), dev:
+                 IC      t   IC>0      n
+RankReversal  0.041  4.305  0.607  399.0
+
+RankReversal diagnostic, rank IC by liquidity tercile: IC tercile 0 (0 = least liquid): 0.031, IC tercile 1 (0 = least liquid): 0.057, IC tercile 2 (0 = least liquid): 0.031
+
+yearly returns:
+        net
+2020 -0.339
+2021 -0.489
+2022 -0.034
+2023 -0.324
+2024 -0.526
+2025 -0.654
+
+written to results/4h_broad_RankReversal/

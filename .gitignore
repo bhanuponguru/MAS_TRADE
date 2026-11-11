@@ -1,7 +1,7 @@
 references/
 .venv/
 __pycache__/
-results/
+# results/
 data/
 
 # reference tables of the legacy implementation are committed on purpose

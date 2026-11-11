@@ -1,0 +1,42 @@
+{"time": "2026-11-07 05:43:20", "bar": "1d", "universe": "broad", "name": "RankCarry", "sharpe_ann": 0.4772023637915354, "bars": 2015, "unsealed": false}
+{"time": "2026-11-07 05:44:46", "bar": "1d", "universe": "broad", "name": "RankCarry", "sharpe_ann": 0.4772023637915354, "bars": 2015, "unsealed": false}
+{"time": "2026-11-07 05:46:54", "bar": "1d", "universe": "broad", "name": "RankCarry card-prior vol-limit", "sharpe_ann": 1.2436242475376382, "bars": 2015, "unsealed": false}
+{"time": "2026-11-07 05:47:57", "bar": "4h", "universe": "broad", "name": "RankCarry card-prior vol-limit", "sharpe_ann": 1.120558378349763, "bars": 12095, "unsealed": false}
+{"time": "2026-11-07 05:54:38", "bar": "1h", "universe": "broad", "name": "RankCarry card-prior vol-limit", "sharpe_ann": 1.047739288681588, "bars": 48383, "unsealed": false}
+{"time": "2026-11-07 07:07:08", "bar": "1d", "universe": "broad", "name": "RankCarry 0038 amended", "sharpe_ann": 1.272159339254372, "bars": 2015, "unsealed": false}
+{"time": "2026-11-07 07:07:53", "bar": "4h", "universe": "broad", "name": "RankCarry 0038 amended", "sharpe_ann": 1.1205132737862065, "bars": 12095, "unsealed": false}
+{"time": "2026-11-07 07:11:32", "bar": "1h", "universe": "broad", "name": "RankCarry 0038 amended", "sharpe_ann": 0.9993571843211128, "bars": 48383, "unsealed": false}
+{"time": "2026-11-07 08:32:16", "bar": "1d", "universe": "broad", "name": "015 carry alone", "sharpe_ann": 1.2574856337807971, "bars": 2015, "unsealed": false}
+{"time": "2026-11-07 08:36:46", "bar": "1d", "universe": "broad", "name": "015 H2 alone", "sharpe_ann": -0.45164714125690203, "bars": 2015, "unsealed": false}
+{"time": "2026-11-07 08:39:40", "bar": "1d", "universe": "broad", "name": "015 carry+H2", "sharpe_ann": 0.8571391723467442, "bars": 2015, "unsealed": false}
+{"time": "2026-11-07 09:04:11", "bar": "4h", "universe": "broad", "name": "015 carry alone", "sharpe_ann": 1.145022630996288, "bars": 12095, "unsealed": false}
+{"time": "2026-11-07 11:38:09", "bar": "1d", "universe": "broad", "name": "015 carry alone", "sharpe_ann": 1.2574859548136668, "bars": 2015, "unsealed": false}
+{"time": "2026-11-07 11:38:53", "bar": "1d", "universe": "broad", "name": "015 H2 alone", "sharpe_ann": -0.45164401406952204, "bars": 2015, "unsealed": false}
+{"time": "2026-11-07 11:49:23", "bar": "1d", "universe": "broad", "name": "015 carry+H2", "sharpe_ann": 0.8571798659066037, "bars": 2015, "unsealed": false}
+{"time": "2026-11-07 11:51:47", "bar": "4h", "universe": "broad", "name": "015 carry alone", "sharpe_ann": 1.1450212421563797, "bars": 12095, "unsealed": false}
+{"time": "2026-11-07 12:04:51", "bar": "4h", "universe": "broad", "name": "015 H2 alone", "sharpe_ann": 0.12469251720002952, "bars": 12095, "unsealed": false}
+{"time": "2026-11-07 12:44:32", "bar": "4h", "universe": "broad", "name": "015 carry+H2", "sharpe_ann": 0.9054816068127227, "bars": 12095, "unsealed": false}
+{"time": "2026-11-07 12:56:31", "bar": "1h", "universe": "broad", "name": "015 carry alone", "sharpe_ann": 0.9988651690885294, "bars": 48383, "unsealed": false}
+{"time": "2026-11-07 13:07:02", "bar": "1h", "universe": "broad", "name": "015 H2 alone", "sharpe_ann": 0.38344490587617075, "bars": 48383, "unsealed": false}
+{"time": "2026-11-07 13:37:35", "bar": "1h", "universe": "broad", "name": "015 carry+H2", "sharpe_ann": 0.9113539475569203, "bars": 48383, "unsealed": false}
+{"time": "2026-11-07 13:47:58", "bar": "1d", "universe": "broad", "name": "015b H2 alone", "sharpe_ann": 1.0610390899769577, "bars": 2015, "unsealed": false}
+{"time": "2026-11-07 13:51:48", "bar": "1d", "universe": "broad", "name": "015b carry+H2", "sharpe_ann": 1.5944891808514126, "bars": 2015, "unsealed": false}
+{"time": "2026-11-07 13:55:57", "bar": "4h", "universe": "broad", "name": "015b H2 alone", "sharpe_ann": 0.9527698437750809, "bars": 12095, "unsealed": false}
+{"time": "2026-11-07 14:10:09", "bar": "4h", "universe": "broad", "name": "015b carry+H2", "sharpe_ann": 1.618759351215461, "bars": 12095, "unsealed": false}
+{"time": "2026-11-07 14:33:04", "bar": "1h", "universe": "broad", "name": "015b H2 alone", "sharpe_ann": 0.9035856872436531, "bars": 48383, "unsealed": false}
+{"time": "2026-11-07 15:08:21", "bar": "1h", "universe": "broad", "name": "015b carry+H2", "sharpe_ann": 1.5672607071156393, "bars": 48383, "unsealed": false}
+{"time": "2026-11-07 15:13:54", "bar": "1d", "universe": "broad", "name": "015b carry recheck", "sharpe_ann": 1.2574859548136668, "bars": 2015, "unsealed": false}
+{"time": "2026-11-07 15:49:05", "bar": "1d", "universe": "broad", "name": "016 timed H2 alone", "sharpe_ann": 1.03131131447967, "bars": 2015, "unsealed": false}
+{"time": "2026-11-07 15:52:24", "bar": "1d", "universe": "broad", "name": "016 carry+timed H2", "sharpe_ann": 1.5967691313767447, "bars": 2015, "unsealed": false}
+{"time": "2026-11-07 15:57:28", "bar": "4h", "universe": "broad", "name": "016 timed H2 alone", "sharpe_ann": 0.899732811377336, "bars": 12095, "unsealed": false}
+{"time": "2026-11-07 16:09:07", "bar": "4h", "universe": "broad", "name": "016 carry+timed H2", "sharpe_ann": 1.6292820712026341, "bars": 12095, "unsealed": false}
+{"time": "2026-11-07 16:30:19", "bar": "1h", "universe": "broad", "name": "016 timed H2 alone", "sharpe_ann": 0.8552231444931316, "bars": 48383, "unsealed": false}
+{"time": "2026-11-07 17:05:28", "bar": "1h", "universe": "broad", "name": "016 carry+timed H2", "sharpe_ann": 1.5804569697527782, "bars": 48383, "unsealed": false}
+{"time": "2026-11-07 17:19:11", "bar": "1d", "universe": "broad", "name": "017 reversal alone", "sharpe_ann": -0.5743579254520681, "bars": 2015, "unsealed": false}
+{"time": "2026-11-07 17:33:13", "bar": "1d", "universe": "broad", "name": "017 market of three", "sharpe_ann": 1.4241141414131224, "bars": 2015, "unsealed": false}
+{"time": "2026-11-07 17:34:39", "bar": "4h", "universe": "broad", "name": "017 reversal alone", "sharpe_ann": -1.07791746506376, "bars": 12095, "unsealed": false}
+{"time": "2026-11-07 18:17:05", "bar": "4h", "universe": "broad", "name": "017 market of three", "sharpe_ann": 1.3891377170710084, "bars": 12095, "unsealed": false}
+{"time": "2026-11-07 18:20:42", "bar": "1h", "universe": "broad", "name": "017 reversal alone", "sharpe_ann": -0.8324280999156228, "bars": 48383, "unsealed": false}
+{"time": "2026-11-08 00:05:20", "bar": "1d", "universe": "broad", "name": "017 reversal alone (rerun after reboot, logs kept)", "sharpe_ann": -0.5743579254520681, "bars": 2015, "unsealed": false}
+{"time": "2026-11-08 00:06:28", "bar": "4h", "universe": "broad", "name": "017 reversal alone (rerun after reboot, logs kept)", "sharpe_ann": -1.07791746506376, "bars": 12095, "unsealed": false}
+{"time": "2026-11-08 00:10:57", "bar": "1h", "universe": "broad", "name": "017 reversal alone (rerun after reboot, logs kept)", "sharpe_ann": -0.8324280999156228, "bars": 48383, "unsealed": false}
