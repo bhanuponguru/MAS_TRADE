@@ -1,6 +1,6 @@
 #!/bin/bash
 # Experiment 021 part B: eight agents, 1d, dev period. Detached; progress in results/021/partB_done.txt
-cd /home/manoj/Desktop/MAS_TRADE
+cd "$(dirname "$(readlink -f "$0")")/../../.."
 AG="RankCarry:7 RankCarry:14 RankCarry:30 TSMomentum:15 TSMomentum:30 TSMomentum:60 RankReversal:3 RankReversal:7"
 go() { tag=$1; shift; mkdir -p results/$tag; OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 nice -n 10 uv run python run_benchmark.py --bar 1d \
   --agents $AG --boot 500 --tag $tag "$@" > results/$tag/run.log 2>&1; echo "$(date +%T) exit=$? $tag" >> results/021/partB_done.txt; }

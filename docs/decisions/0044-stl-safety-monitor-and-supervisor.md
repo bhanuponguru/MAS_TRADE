@@ -14,7 +14,7 @@ The proposal promises an STL safety monitor and a supervisor. Decision 0036 plac
    - *Supervisor* "hold": a rebalance whose solve is unsafe (did not converge and relative residual above 1e-3) trades nothing; the drifted positions are kept. The fail-safe against a misbehaving agent that the detector misses.
 
 ## Limits and their mandate (written before any run)
-All values come from the mandate of decision 0026 (approved by the user on 2026-11-05) and are not chosen by any backtest:
+All values come from the mandate of decision 0026 and are not chosen by any backtest:
 | Setting | Value | Mandate |
 |---|---|---|
 | `dd_limit`, `dd_days` | 15% over 365 days | 0026: lose at most about half of what the equity market lost in its worst stretch within any one year; the same horizon in calendar days for crypto. |

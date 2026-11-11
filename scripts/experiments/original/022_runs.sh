@@ -1,6 +1,6 @@
 #!/bin/bash
 # Experiment 022: seven hub runs (part A) and three graph runs (part B). Detached; progress in results/022/done.txt
-cd /home/manoj/Desktop/MAS_TRADE
+cd "$(dirname "$(readlink -f "$0")")/../../.."
 go() { tag=$1; shift; mkdir -p results/$tag; OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 nice -n 10 uv run python run_benchmark.py \
   --boot 500 --tag $tag "$@" > results/$tag/run.log 2>&1; echo "$(date +%T) exit=$? $tag" >> results/022/done.txt; }
 A="--agents RankCarry TSMomentum"

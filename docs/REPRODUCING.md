@@ -4,10 +4,11 @@ No full re-run is planned. This note records how every result was produced, so t
 
 ## What is in the repository and what is not
 
-| In the repository | Not in the repository (gitignored or on another machine) |
+| In the repository | Not in the repository |
 |---|---|
-| All code, the tests, the pre-registered rules and the write-up of every experiment (`docs/experiments/`), the decisions (`docs/decisions/`), and the small result tables of every experiment (`docs/experiments/data/`) | the raw data (`data/`, about 1.9 GB), the saved runs (`results/`), the trial log (`results/trials.jsonl`) |
-| The legacy implementation, at git tag `legacy-v1-v2` (commit `b24f70a`) | the saved runs of experiments 018 to 023, which were produced on the second contributor's machine |
+| All code, the tests, the pre-registered rules and the write-up of every experiment (`docs/experiments/`), the decisions (`docs/decisions/`), and the small result tables of every experiment (`docs/experiments/data/`) | the raw data (`data/`, about 1.9 GB, gitignored) |
+| The saved runs and the trial log in `results/`, committed on purpose so that the results can be inspected without running anything: the runs made before the correction of the volatility limit (experiments 013, 015, 016, 017; superseded by 018) under `results/_precorrection_2026-11-07/`, and `results/trials.jsonl`, the trial log of experiments 013 to 017 (see `results/README.md`) | the corrected saved runs of experiments 018 to 023; only their tables are committed |
+| The legacy implementation, at git tag `legacy-v1-v2` (commit `b24f70a`) | |
 | A register of the strategy variants behind the deflated Sharpe: `docs/experiments/data/023/trial_register.csv` | |
 | One script per experiment (`scripts/experiments/`), the original batch scripts of 018 to 022 (`scripts/experiments/original/`) and the code of the tables of 020, 021 and 022 (`experiment_tables.py`) | |
 
@@ -62,12 +63,12 @@ Experiments 014 (funding forecast) and 016 (timing) used code that was deleted w
 
 ## The trial log and the deflated Sharpe
 
-Every run appends a line to `results/trials.jsonl`; the file is not committed, because it is specific to the machine that made the runs (the one on the first contributor's machine has 42 lines, mostly repeats). The strategy trials counted in the deflated Sharpe of experiment 023 are listed in `docs/experiments/data/023/trial_register.csv`.
+Every run appends a line to `results/trials.jsonl`. The copy in the repository (42 lines, mostly repeats) covers experiments 013 to 017 and does not contain the runs of 018 to 023. The strategy trials counted in the deflated Sharpe of experiment 023 are listed in `docs/experiments/data/023/trial_register.csv`.
 
 The written enumeration of experiment 023 sums to **16** strategy variants (48 trials over three bar sizes), while the text states 15 (45 trials). The register follows the enumeration. The difference is small and in the conservative direction: at 48 trials the deflated Sharpe of the daily main system falls from 0.070 to about 0.063 (computed from the same inputs, with the number of periods approximated), so the verdict is unchanged.
 
 ## Known gaps
 
-- The saved runs of experiments 018 to 023 are on another machine; only their tables are committed.
+- The corrected saved runs of experiments 018 to 023 are not in the repository; only their tables are committed, and the runs in `results/` are the older, superseded ones.
 - The data snapshot is not archived, and the sealed split moves with the last downloaded bar (see above).
 - The course lecture PDFs cited in the README (`references/`) are not in the repository.

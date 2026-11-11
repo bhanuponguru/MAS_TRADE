@@ -1,7 +1,7 @@
 references/
 .venv/
 __pycache__/
-# results/
+# results/ is committed on purpose, so that the results can be inspected without running anything
 data/
 
 # reference tables of the legacy implementation are committed on purpose

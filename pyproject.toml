@@ -1,6 +1,8 @@
 [project]
 name = "mas-trade"
 version = "0.1.0"
+description = "A multi-agent trading system for Binance perpetual futures: capital-staked hypothesis agents, decentralised ADMM, resilience and formal safety"
+readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "numpy>=2.5.4",

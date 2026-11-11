@@ -15,7 +15,7 @@ Option 3. `uv run --group dashboard streamlit run dashboard.py`. Six tabs: conse
 
 ## Consequences
 - The demonstration shows the mechanisms live; nothing in it changes a result (it only reads saved runs, and the live simulator uses simulated problems, never market data).
-- The saved runs in `results/` are local and gitignored; on another machine those tabs show the committed tables only until the runs are reproduced.
+- The dashboard reads saved runs from `results/<tag>/`. The corrected runs of experiments 018 to 023 are not in the repository, so the tabs that need them show the committed tables only until the runs are reproduced (`scripts/experiments/`).
 - An undefended noise liar is capped at 300 iterations in the simulator, because its solve diverges and slows down (experiment 022, amendment 1).
 - No sealed data: no saved run contains the final 12 months.
 

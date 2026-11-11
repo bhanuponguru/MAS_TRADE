@@ -20,10 +20,10 @@ Option 3. Superseded code is deleted, not preserved. History is kept only as:
 - small reference tables in `../experiments/data/` (dev-period only; the sealed-holdout tables were not copied).
 README describes only the new system.
 
-Kept and moved: the Binance data pipeline (`data.py`), panel, cost model, Ledoit-Wolf and betas (`risk.py`), diagnostics (IC, regimes, deflated Sharpe, trial log), metrics, the cost prox (`cells_admm.py`) and the STL operators (`stl.py`, the contributor's module with the v1 shield removed).
+Kept and moved: the Binance data pipeline (`data.py`), panel, cost model, Ledoit-Wolf and betas (`risk.py`), diagnostics (IC, regimes, deflated Sharpe, trial log), metrics, the cost prox (`cells_admm.py`) and the STL operators (`stl.py`, with the v1 shield removed).
 
 ## Consequences
-- The stock demo, W-MSR consensus, trust-weighted capital flow, hierarchy, adversary experiment and the v1 shield exist only at the tag. The contributor's safety-layer work is reduced to its STL operators; the specs are rebuilt on the new structure ([0036](0036-risk-model-and-stl-placement.md)).
+- The stock demo, W-MSR consensus, trust-weighted capital flow, hierarchy, adversary experiment and the v1 shield exist only at the tag. The safety-layer work is reduced to its STL operators; the specs are rebuilt on the new structure ([0036](0036-risk-model-and-stl-placement.md)).
 - Scope is crypto perpetuals. The yfinance dependency is removed.
 
 ## Rollback
