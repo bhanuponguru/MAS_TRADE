@@ -4,7 +4,7 @@
 
 AI3403: Multi-Agent Systems, course project, Fall 2026. Team BackPropeers: Krishna Teja (CS23BTECH11028), Hruthik (CS23BTECH11043), Bhanu (CS23BTECH11046), Manoj (CS23BTECH11047), Jaya Prakash (CS23BTECH11015), Sandeep (CS23BTECH11027). Course instructor: Dr. Venkatraman Renganathan. Code: <https://github.com/bhanuponguru/MAS_TRADE>.
 
-This is the Markdown version of the submitted report [report/main.tex](../report/main.tex); section, table, figure and equation numbers match the PDF.
+This is the Markdown version of the submitted report [report/MAS_PROJECT_REPORT.pdf](../report/MAS_PROJECT_REPORT.pdf); section, table, figure and equation numbers match the PDF.
 
 ## Abstract
 
@@ -760,7 +760,7 @@ H5e is *rejected*: (a) and (c) fail on every bar size and (b) passes only on 4-h
 
 With the losing reversal agent in the roster, however, the market is clearly better than a fixed blend of the same three agents (+0.86 and +0.88 on 4-hourly and hourly bars, intervals above zero): it cut reversal to the 2% floor, where its account lost 7% to 9% of initial equity a year, while the blend kept paying for its losses; trading cost was 2.4% to 2.9% a year for the market against 2.5% to 3.5% for the blend. Figure 5.1 shows the same picture year by year: the main system beat carry alone in five of the six years (all except 2022), while reversal lost money in five of them.
 
-**Figure 5.1.** Yearly net return on daily bars, corrected configuration: the three agents alone and the main system (the market of carry and momentum). Source: experiment 018. ([open the figure](../report/figures/fig_yearly.pdf))
+**Figure 5.1.** Yearly net return on daily bars, corrected configuration: the three agents alone and the main system (the market of carry and momentum). Source: experiment 018. (see the PDF report)
 
 **Interpretation: when does a market of agents help?**  A fixed blend holds each agent at a constant weight; the market holds agent $i$ at $V_i/\sum_j V_j$, and by (3.6) an agent with persistently negative returns loses share geometrically until it reaches the floor. When all agents are good the growth gap between them is small and wealth moves slowly compared with noise, so the market behaves like a fixed mix. When one agent is bad the gap is large and the market removes it within the sample. The market's value is therefore *protection from failure, not extra return*, limited by how fast selection acts (E1).
 
@@ -824,7 +824,7 @@ This chapter tests whether the hub can be removed (E5), how network shape and co
 - **Part A.** Simulated problems with every limit binding: 4, 8 and 16 agents; complete, ring, line, star and random graphs; 1, 3 and 10 rounds. Gate A1: at $g=3$, the rank correlation between $\varsigma$ and iterations is at least 0.7 for each size.
 - **Part B.** Real data, daily, with eight agents that are parameter variants of the three hypotheses (carry with 7, 14 and 30 days; momentum with 15, 30 and 60 days; reversal with 3 and 7 days), used only to study coordination. Gate B1: every uncapped graph run is within 0.02 Sharpe and 2% final equity of the hub.
 
-**Figure 6.1.** Median iterations to converge on simulated problems, three gossip rounds (cap 4,000). Hatched bars did not converge within the cap. Source: E6 Part A. ([open the figure](../report/figures/fig_topology.pdf))
+**Figure 6.1.** Median iterations to converge on simulated problems, three gossip rounds (cap 4,000). Hatched bars did not converge within the cap. Source: E6 Part A. (see the PDF report)
 
 **Results, Part A.**  Gate A1 *fails*: the correlations are 0.60, 0.90 and 0.78 at 4, 8 and 16 agents. At four agents the graphs differ little and the difficulty of each problem dominates (one problem needed about 830 iterations on every graph, including the complete one). Within each problem the ordering is as predicted (mean correlation 0.79, 0.96, 0.82), but that was not the pre-registered statistic, so the gate is reported as failed.
 
@@ -832,7 +832,7 @@ Figure 6.1 shows the pattern at 8 and 16 agents: sparse graphs need far more ite
 
 After a fixed number of iterations the error of the net position is almost the same on every graph (eight agents: about 0.40 after 25 iterations, 0.16 after 100, below 0.001 after 400): early iterations are limited by ADMM itself, and the graph decides how long the final, precise part takes.
 
-**Figure 6.2.** Real data, eight agents, daily: every network gives the hub's Sharpe ratio (left, dashed line); what changes is the communication (right). Source: E6 Part B. ([open the figure](../report/figures/fig_cost_vs_outcome.pdf))
+**Figure 6.2.** Real data, eight agents, daily: every network gives the hub's Sharpe ratio (left, dashed line); what changes is the communication (right). Source: E6 Part B. (see the PDF report)
 
 **Table 6.2.** Real data, eight agents, daily (135 rebalances; cap 3,000 iterations unless stated).
 
@@ -1000,7 +1000,7 @@ Any of these counts leaves the verdict unchanged, because the deflated Sharpe ra
 
 Gate C1 *passes*. Figure 7.1 and Table 7.1 give the net Sharpe ratios.
 
-**Figure 7.1.** Net Sharpe ratio with 90% block-bootstrap interval. Dots are estimates, bars are intervals, the dark line is zero. Source: E9, table T1. ([open the figure](../report/figures/fig_sharpe.pdf))
+**Figure 7.1.** Net Sharpe ratio with 90% block-bootstrap interval. Dots are estimates, bars are intervals, the dark line is zero. Source: E9, table T1. (see the PDF report)
 
 **Table 7.1.** Net Sharpe ratio with 90% interval (T1).
 
@@ -1042,7 +1042,7 @@ When only the best of many tries is shown, luck can look like skill: among 45 pe
 | 4-hourly | 1.48 | 0.13 | 11.7 | 0.100 | 0.046 | **FAIL** |
 | Hourly | 1.48 | 0.62 | 29.4 | 0.101 | 0.047 | **FAIL** |
 
-**Figure 7.2.** Deflated Sharpe ratio of the main system against the number of trials. The same Sharpe ratio would pass at one or two trials and falls to 0.07--0.10 at our 45. Source: E9, table T5. ([open the figure](../report/figures/fig_dsr.pdf))
+**Figure 7.2.** Deflated Sharpe ratio of the main system against the number of trials. The same Sharpe ratio would pass at one or two trials and falls to 0.07--0.10 at our 45. Source: E9, table T5. (see the PDF report)
 
 **Results.**  Gate C2 *fails on every bar size* (Table 7.3). With $V_{\mathrm{SR}}=0.82$ (the 15 corrected strategy runs, from $-1.17$ to $1.48$), the luck bar $\mathrm{SR}_0$ is about 2.0 in annual terms, above the main system's 1.39 to 1.48. The deflated Sharpe ratio is above 0.95 only for $L\le2$ and is 0.47 to 0.55 at $L=10$ (Figure 7.2).
 
@@ -1070,17 +1070,11 @@ The final demonstration uses an interactive Streamlit dashboard with six tabs: a
 
 "` uv run --group dashboard streamlit run dashboard.py "`
 
-![Figure 7.3](../report/figures/dash_simulator_clean.png)
+**Figure 7.3.** Dashboard, consensus simulator: eight agents, complete graph, one gossip round, no liar. The error against the central optimum falls steadily and the agents agree throughout. (screenshot in the PDF report)
 
-**Figure 7.3.** Dashboard, consensus simulator: eight agents, complete graph, one gossip round, no liar. The error against the central optimum falls steadily and the agents agree throughout.
+**Figure 7.4.** Dashboard, consensus simulator: the same problem with agent 3 adding a constant 0.01 to everything it sends, detector on. Agent 3 (grey) is isolated and the others converge to the optimum without it. (screenshot in the PDF report)
 
-![Figure 7.4](../report/figures/dash_simulator_liar.png)
-
-**Figure 7.4.** Dashboard, consensus simulator: the same problem with agent 3 adding a constant 0.01 to everything it sends, detector on. Agent 3 (grey) is isolated and the others converge to the optimum without it.
-
-![Figure 7.5](../report/figures/dash_topology.png)
-
-**Figure 7.5.** Dashboard, network shape and communication tab: median iterations to converge and messages per solve for eight agents, by network shape and gossip rounds (E6 Part A).
+**Figure 7.5.** Dashboard, network shape and communication tab: median iterations to converge and messages per solve for eight agents, by network shape and gossip rounds (E6 Part A). (screenshot in the PDF report)
 
 **Reading the simulator.**  The two runs show the two results of Section 3.6 and Section 3.7 at work. With no liar the disagreement between the agents stays at machine precision throughout, because the sum invariant holds at every iteration, and the error against the central optimum falls steadily.
 
@@ -1161,7 +1155,7 @@ Table 8.1 maps the multi-agent ideas the project uses to the part of the system 
 
 ### 8.7 Reproducibility
 
-The software, the pre-registered rules, the result tables and the trial log are in the project repository; the raw data come from the exchange's public archive [22]. Results are deterministic for fixed data and settings. The guide `docs/REPRODUCING.md` gives the exact commands; `scripts/experiments/` holds one script per experiment and `run_all.sh` runs them all; `docs/experiments/` holds the numbered write-ups and `docs/decisions/` the design decisions. The figures of this report are drawn by `report/make_figures.py` from the committed result tables. Table B.2 in Appendix B maps each part of the system to its code.
+The software, the pre-registered rules, the result tables and the trial log are in the project repository; the raw data come from the exchange's public archive [22]. Results are deterministic for fixed data and settings. The guide `docs/REPRODUCING.md` gives the exact commands; `scripts/experiments/` holds one script per experiment and `run_all.sh` runs them all; `docs/experiments/` holds the numbered write-ups and `docs/decisions/` the design decisions. The figures of this report are drawn from the committed result tables. Table B.2 in Appendix B maps each part of the system to its code.
 
 ### 8.8 Summary
 
