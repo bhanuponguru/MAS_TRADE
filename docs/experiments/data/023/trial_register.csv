@@ -1,0 +1,21 @@
+id,experiment,variant,bar_sizes,counted_in_strategy_trials,note
+1,013,carry; belief from a trailing IC estimate shrunk towards zero; no volatility limit (first run),1d,yes,counted on every bar size by the convention of experiment 023
+2,013,carry; sign clip and volatility limit (first fix),1d 4h 1h,yes,
+3,013,carry; belief size fixed by the card; kill rule (final design),1d 4h 1h,yes,
+4,014,carry; funding forecast from the premium index (rung 1),1d 4h 1h,yes,rejected at the mechanical gate before any profit run
+5,015a,momentum alone; coin set not enforced,1d 4h 1h,yes,
+6,015a,market of carry and momentum; coin set not enforced,1d 4h 1h,yes,
+7,015b,momentum alone; coin set enforced,1d 4h 1h,yes,
+8,015b,market of carry and momentum; coin set enforced,1d 4h 1h,yes,
+9,016,timed momentum alone and its market with carry,1d 4h 1h,yes,one trial with its market by the convention of experiment 023
+10,017,reversal alone,1d 4h 1h,yes,
+11,017,market of carry momentum and reversal,1d 4h 1h,yes,
+12,018,carry after the volatility-limit correction,1d 4h 1h,yes,
+13,018,momentum after the correction,1d 4h 1h,yes,
+14,018,reversal after the correction,1d 4h 1h,yes,
+15,018,market of carry and momentum after the correction,1d 4h 1h,yes,
+16,018,market of carry momentum and reversal after the correction,1d 4h 1h,yes,
+-,015,carry alone re-run on the final solver,1d 4h 1h,no,same configuration as 013 except the volatility mechanism: a duplicate
+-,015b,carry re-check on the final code,1d,no,exact repeat
+-,017,reversal alone repeated after a machine restart,1d 4h 1h,no,exact repeat; identical numbers
+-,019-022,engineering variants (consensus form; topology; resilience; safety),various,no,counted separately: 29 distinct names give the conservative total of 74 trials

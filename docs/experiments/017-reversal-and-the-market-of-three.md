@@ -21,7 +21,7 @@ All six runs were repeated with the volatility-limit fix and the missing 1h mark
 Table: `data/017/comparison.csv`. The code of `RankReversal` is kept for now as the template of a residual (beta-removed) rank agent; delete it if no later agent uses it.
 
 ## Before the fix (kept for the record)
-Done: reversal alone on 1d, 4h, 1h; market of three on 1d and 4h. **Missing: the market of three on 1h**, so market acceptance, gate (c) and the blend comparison are not decided here. The runs of reversal alone were executed twice (a reboot erased the first logs); the repeat reproduced every number, and the trial log therefore holds each of them twice (count once for the deflated Sharpe). Logs: `results/<bar>_broad_RankReversal/run.log`.
+Done: reversal alone on 1d, 4h, 1h; market of three on 1d and 4h. **Missing: the market of three on 1h**, so market acceptance, gate (c) and the blend comparison are not decided here. The missing run was completed in experiment 018, which supersedes this section. The runs of reversal alone were executed twice (a reboot erased the first logs); the repeat reproduced every number, and the trial log therefore holds each of them twice (count once for the deflated Sharpe). Logs: `results/<bar>_broad_RankReversal/run.log`.
 
 **Reversal alone (the stand-alone gates, from the run logs):**
 | Bar | Net Sharpe (90% interval) | CAGR | Vol | Max drawdown | Rank IC (t) | Turnover | Annual cost | IC by liquidity tercile (0 = least liquid) |

@@ -64,14 +64,6 @@ def block_bootstrap_sharpe(r, ppy, block, ref=None, n_boot=2000, seed=0, chunk=1
     return point, float(np.nanpercentile(d, 5)), float(np.nanpercentile(d, 95))
 
 
-def split_holdout(df, months):
-    """(development, holdout): the last `months` months are the holdout. The backtest is walk-forward
-    with nothing fitted, so splitting its output afterwards is legitimate; what must not happen is
-    tuning settings by looking at the holdout."""
-    cut = df.index[-1] - pd.DateOffset(months=months)
-    return df.loc[df.index < cut], df.loc[df.index >= cut]
-
-
 def yearly_returns(df):
     """Compounded return per calendar year per column."""
     return (1 + df).groupby(df.index.year).prod() - 1

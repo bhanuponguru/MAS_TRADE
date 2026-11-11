@@ -2,7 +2,7 @@
 
 A multi-agent trading system for Binance USD-M perpetual futures, built from the AI3403 Multi-Agent Systems course material in `references/` (consensus, ADMM, distributed learning, temporal logic). Judged in absolute terms (net Sharpe against zero, P&L decomposition), never against holding BTC.
 
-**Status: rebuild in progress** (branch `engine-rebuild`, not merged into `main`). In one line (after the volatility-limit fix, [experiment 018](docs/experiments/018-rerun-after-volatility-limit-fix.md)): the funding-carry agent works (net Sharpe 1.14 / 1.12 / 0.94 on 1d / 4h / 1h), carry + Bitcoin/Ethereum momentum reaches 1.39 / 1.48 / 1.48 but momentum narrowly fails its own admission rule and is kept as a provisional agent ([decision 0041](docs/decisions/0041-h2-kept-as-provisional-agent.md); [015](docs/experiments/015-time-series-momentum-and-the-market.md)), timing it was rejected ([016](docs/experiments/016-timing-inside-h2.md)), reversal does not pay after costs and is not admitted; with it in the roster the market beats a fixed mix by cutting its capital ([017](docs/experiments/017-reversal-and-the-market-of-three.md)). The decentralised optimiser (agents talk only to neighbours, [decision 0042](docs/decisions/0042-decentralised-cell-admm-over-a-graph.md)) gives the same result as the central hub on every network shape; sparse networks need far more communication ([019](docs/experiments/019-graph-admm-on-real-data.md), [020](docs/experiments/020-topology-and-communication-budget.md)); link failures and an offline agent leave the result unchanged, and a lying agent is detected and isolated on a robust graph ([021](docs/experiments/021-resilience.md)). An STL safety monitor records every safety spec bar by bar; the derisk supervisor makes drawdowns shallower and the hold supervisor stops a noise-sending liar but, at its pre-set limit, also freezes on slow honest solves ([022](docs/experiments/022-safety-monitor-and-supervisor.md)). An interactive dashboard shows it all: `uv run --group dashboard streamlit run dashboard.py` ([decision 0045](docs/decisions/0045-interactive-dashboard.md)). After the correction for the 45 strategy variants tried, the main system's Sharpe is not convincing on the dev period alone (deflated Sharpe 0.07-0.10, [023](docs/experiments/023-final-comparison-on-the-dev-period.md)). The final 12 months are sealed and untouched.
+**Status: complete on the development period** (all experiments 011 to 023 are finished; the final twelve months of data are sealed and unopened). In one line: the funding-carry agent works (net Sharpe 1.14 / 1.12 / 0.94 on daily, 4-hourly and hourly bars); the decentralised optimiser (agents talk only to neighbours) gives the same portfolio as the central one on every network shape, under link failures, with an agent offline and with a lying agent isolated; the capital market protects against a bad agent but adds nothing over a fixed mix of good agents; an STL safety monitor with a de-risking supervisor makes drawdowns shallower; and after correction for the 45 strategy variants tried, the main system's Sharpe is not conclusive on the development period alone (deflated Sharpe 0.07 to 0.10).
 
 **The project report:** [docs/REPORT.md](docs/REPORT.md) is the formal report of the whole research, written from first principles in multi-agent-systems terms for a reader who has not seen the code; it is the basis of the final project presentation.
 
@@ -16,10 +16,16 @@ A multi-agent trading system for Binance USD-M perpetual futures, built from the
 ## Run
 ```
 uv sync
-uv run pytest
+uv run pytest                                              # all tests (about 7 minutes)
 uv run python download_data.py [--bars 1d 4h 1h] [--top 50] [--datasets klines funding premium metrics spot]   # Binance public dumps -> data/crypto/ (gitignored)
-uv run python run_benchmark.py --bar 1d   # the engine on real data, development period only
+uv run python run_benchmark.py --bar 1d --agents RankCarry TSMomentum    # the engine on real data, development period only
+uv run --group dashboard streamlit run dashboard.py        # the interactive dashboard
 ```
+The sealed window is the 12 months before the last downloaded bar, so results depend on the data snapshot (the published numbers use one ending on 2026-11-05). How every result was produced, what is and is not in the repository, and the known gaps are in [docs/REPRODUCING.md](docs/REPRODUCING.md).
+
+## Documentation
+- [docs/REPORT.md](docs/REPORT.md) the research report; [docs/REPRODUCING.md](docs/REPRODUCING.md) reproduction notes.
+- [docs/experiments/](docs/experiments/) one write-up per experiment with its exact command and result tables; [docs/decisions/](docs/decisions/) one record per design decision.
 
 ## History
-This repository replaced an earlier implementation (a v1 consensus MAS on US stocks and crypto, and a v2 books-and-combiners engine). The experiments and decision records of that work are kept in [docs/experiments/](docs/experiments/) and [docs/decisions/](docs/decisions/); the code is at git tag `legacy-v1-v2` ([decision 0032](docs/decisions/0032-replace-v1-v2.md)).
+This repository replaced an earlier implementation (a v1 consensus MAS on US stocks and crypto, and a v2 books-and-combiners engine). The experiments and decision records of that work are kept in [docs/experiments/](docs/experiments/) and [docs/decisions/](docs/decisions/); the code is at git tag `legacy-v1-v2` (commit `cf16351`) ([decision 0032](docs/decisions/0032-replace-v1-v2.md)).
