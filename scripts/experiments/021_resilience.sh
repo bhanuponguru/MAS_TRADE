@@ -2,14 +2,14 @@
 # Experiment 021, resilience: link failures, an offline agent, a liar, detect-and-isolate.
 #   bash scripts/experiments/021_resilience.sh [partA|partA5|partB|tables|all]      default all (not partA5)
 # Part A: simulated problems, about 3.5 hours (docs/experiments/data/021/partA.csv). partA5: the rows of the rejected
-# W-MSR trimmed mixing, which only the code at commit 4194d43 can make (output inside results/historic/4194d43).
+# W-MSR trimmed mixing, which only the code at commit 93b0fe7 can make (output inside results/historic/93b0fe7).
 # Part B: eight agents on 1d (eight runs; reads the 020 hub/complete/ring runs too), then partB_runs.csv. Run 7, the
 # undefended liar (021_liar_none), never finished (amendment 1); it is only started with WITH_UNDEFENDED_LIAR=1.
 # Original batch: scripts/experiments/original/021_partB.sh.
 source "$(dirname "$0")/common.sh"
 what=${1:-all}
 if [ "$what" = partA ] || [ "$what" = all ]; then uv run python -u run_resilience.py --workers 3; fi
-if [ "$what" = partA5 ]; then exec bash scripts/experiments/historic.sh 4194d43 -- uv run python -u run_resilience.py --workers 3; fi
+if [ "$what" = partA5 ]; then exec bash scripts/experiments/historic.sh 93b0fe7 -- uv run python -u run_resilience.py --workers 3; fi
 if [ "$what" = partB ] || [ "$what" = all ]; then
   B="--bar 1d --agents $EIGHT"
   OFF="--offline RankCarry7 2022-05-01 2022-08-31"

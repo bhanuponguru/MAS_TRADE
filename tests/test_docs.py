@@ -17,7 +17,6 @@ def test_every_experiment_and_decision_is_in_its_index():
         assert not missing, f"{folder}/README.md does not list {missing}"
 
 
-
 def test_relative_links_resolve():
     files = [ROOT / "README.md", *DOCS.glob("*.md"), DOCS / "experiments" / "README.md", DOCS / "decisions" / "README.md",
              *_numbered("experiments"), *_numbered("decisions")]

@@ -1,6 +1,6 @@
 # 009. Intra-period safety checks
 
-Date: 2026-11-05   Decision: [0028](../decisions/0028-intra-period-safety-checks.md)   Code: working tree on top of `92ccc47`
+Date: 2026-11-05   Decision: [0028](../decisions/0028-intra-period-safety-checks.md)   Code: working tree on top of `7eff0f1`
 Command: `uv run python run_safety_experiments.py --exp d028`   Raw: `results/experiments/safety/{flat,hier}_{periods,stress}.csv`
 
 ## Question

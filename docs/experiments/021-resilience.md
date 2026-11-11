@@ -28,7 +28,7 @@ Expectation, stated up front: A1, A2, B1, B2, B3 pass; A3 fails as the robustnes
 **Amendment 1 (2026-11-08, after the other runs had finished): run 7 (undefended liar on real data) was stopped after 3 h 40 min without output.** With the lie, every solve runs to the 3,000-iteration cap and the volatility search re-solves up to five more times, so the run would have needed many more hours. It feeds only B4 (reported, no gate); the cost of an undefended liar is shown on the simulated problems (A4) instead. Not in the trial log (it never finished).
 
 ## Results, part A (simulated problems, seeds 10-12)
-Command: `uv run python -u run_resilience.py --workers 3` (about 3.5 hours beside part B). Table: [data/021/partA.csv](data/021/partA.csv) (one row per run). The A5 rows were produced at commit `4194d43`; trimmed mixing was then deleted (below), so the current script no longer runs them.
+Command: `uv run python -u run_resilience.py --workers 3` (about 3.5 hours beside part B). Table: [data/021/partA.csv](data/021/partA.csv) (one row per run). The A5 rows were produced at commit `93b0fe7`; trimmed mixing was then deleted (below), so the current script no longer runs them.
 
 **A1 (gate): PASS.** Every run with links down with probability 0.1 or 0.3 converged, with error at most 5.4e-6 (rule: 1e-4). Even at 0.5 every run converged. Median iterations:
 
@@ -44,7 +44,7 @@ Command: `uv run python -u run_resilience.py --workers 3` (about 3.5 hours besid
 
 **A4 (reported).** Undefended liar (adds 0.01, plain mixing): error after 1,000 iterations 5.5 to 5.9 times a typical position on every graph, and no convergence. Noise liar with the detector: isolated in 1 of 6 runs (complete graph, seed 11, after which the result was exact); in the other 5 runs no isolation, no convergence in 4,000 iterations and error 12.5 to 14.8 times a typical position.
 
-**A5 (reported; decides the code).** W-MSR trimmed mixing (F = 1) with no attacker: no run converged and the error was 0.50 to 4.8 times a typical position (6 of 6 runs above 1e-2). **Trimmed mixing is rejected and its code deleted** (`wmsr_mix`, the `trim` option; at commit `4194d43`).
+**A5 (reported; decides the code).** W-MSR trimmed mixing (F = 1) with no attacker: no run converged and the error was 0.50 to 4.8 times a typical position (6 of 6 runs above 1e-2). **Trimmed mixing is rejected and its code deleted** (`wmsr_mix`, the `trim` option; at commit `93b0fe7`).
 
 ## Results, part B (real data, 1d, dev period, eight agents)
 Commands: as in experiment 020 (`AG=...`, `--boot 500`) with the options listed in the rules, tags `021_<run>`:

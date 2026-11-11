@@ -1,6 +1,6 @@
 # 005. v1 system on crypto perps vs BTC (and with the STL shield)
 
-Date: benchmark built 2026-11-01 (`47fa8ee`); first recorded run 2026-11-05 (Phase 1 working tree, with the 0030 universe fix)
+Date: benchmark built 2026-11-01 (`3e2c17e`); first recorded run 2026-11-05 (Phase 1 working tree, with the 0030 universe fix)
 Decisions: [0012](../decisions/0012-engine-24-7-generalisation.md)–[0014](../decisions/0014-crypto-benchmark-protocol.md), [0026](../decisions/0026-safety-thresholds.md), [0030](../decisions/0030-skip-market-wide-dump-holes.md)
 Command: `uv run python download_crypto_data.py` (once, ~30 min, 266 MB), then `uv run python run_crypto_benchmark.py --bar 1d|4h|1h`
 Raw: `results/crypto/{1d,4h,1h}_broad/` (metrics_{full,dev,holdout}.csv, stl_summary.csv, safety_monitor.csv, bootstrap_vs_btc.csv)

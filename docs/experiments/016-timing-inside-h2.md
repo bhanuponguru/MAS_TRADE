@@ -1,6 +1,6 @@
 # 016. Timing inside H2: timed against untimed (Phase 4)
 
-Date: 2026-11-07   Decision: [0039](../decisions/0039-timing-inside-the-belief-of-h2.md)   Code: `TimedMomentum` in `agents/momentum.py` and `compare_timing.py`, as at commit 394314e (deleted after this experiment, see Outcome)
+Date: 2026-11-07   Decision: [0039](../decisions/0039-timing-inside-the-belief-of-h2.md)   Code: `TimedMomentum` in `agents/momentum.py` and `compare_timing.py`, as at commit ef516db (deleted after this experiment, see Outcome)
 Commands: `uv run python run_benchmark.py --bar B --agents TSMomentumTimed --label "016 timed H2 alone" --tag B_broad_TSMomentumTimed --boot 500` (and `--agents RankCarry TSMomentumTimed` with tag `..._RankCarry+TSMomentumTimed`) for B in 1d, 4h, 1h, then `uv run python compare_timing.py`.
 
 ## Question

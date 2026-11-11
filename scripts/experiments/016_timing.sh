@@ -1,9 +1,9 @@
 #!/bin/bash
-# Experiment 016, timing inside H2 (rejected; TimedMomentum and compare_timing.py were deleted). Runs at commit 394314e,
+# Experiment 016, timing inside H2 (rejected; TimedMomentum and compare_timing.py were deleted). Runs at commit ef516db,
 # with that commit's engine (before the volatility-limit fix of 018), including the untimed baselines it compares with,
-# in its own results/ (results/historic/394314e/results). Output: docs/experiments/data/016/comparison.csv there.
+# in its own results/ (results/historic/ef516db/results). Output: docs/experiments/data/016/comparison.csv there.
 source "$(dirname "$0")/common.sh"
-H="bash scripts/experiments/historic.sh 394314e --"
+H="bash scripts/experiments/historic.sh ef516db --"
 hb() { local tag=$1; shift; $H bash -c "mkdir -p results/$tag && uv run python run_benchmark.py --boot 500 --tag $tag $* > results/$tag/run.log 2>&1" && echo "done $tag"; }
 $H uv sync >/dev/null      # create the worktree and its environment once, before the parallel runs
 for b in $BARS; do

@@ -1,6 +1,6 @@
 # 0020. v2 research hygiene: sealed holdout, trial log, deflated Sharpe
 
-Status: **Accepted**   Date: 2026-11-01   Commit: `47fa8ee`   Where: `v2/diagnostics.py`, `run_v2_benchmark.py --unseal`
+Status: **Accepted**   Date: 2026-11-01   Commit: `3e2c17e`   Where: `v2/diagnostics.py`, `run_v2_benchmark.py --unseal`
 
 ## Decision
 - The last 12 months are **sealed**: reported only with `--unseal`, and unsealing is logged. No full-period statistics in ad-hoc diagnostics.

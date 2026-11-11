@@ -1,6 +1,6 @@
 # 018. Re-run of experiments 013, 015b and 017 with the corrected volatility limit
 
-Date: 2026-11-08   Decision: [0036](../decisions/0036-risk-model-and-stl-placement.md) (amendment of 2026-11-08)   Fix: commit `cba8bff`
+Date: 2026-11-08   Decision: [0036](../decisions/0036-risk-model-and-stl-placement.md) (amendment of 2026-11-08)   Fix: commit `dcacc5d`
 Code: `engine.py`, `summarize_runs.py`, `compare_runs.py`, `compare_blend.py`, `compare_reversal.py`
 Commands (dev period only, holdout sealed; each run once, labels end in "(vol fix)" in the trial log):
 ```

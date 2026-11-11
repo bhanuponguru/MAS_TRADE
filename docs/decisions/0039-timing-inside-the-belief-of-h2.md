@@ -1,6 +1,6 @@
 # 0039. Timing inside H2's belief: two mechanism-based states, a shrunk and sign-constrained coefficient, kept only if it beats the untimed twin
 
-Status: **Rejected by experiment 016** (timed H2 was worse than untimed; the code was deleted, commit 394314e holds it)   Date: 2026-11-07   Where: `agents/momentum.py` (`TimedMomentum`)   Evidence: [exp 016](../experiments/016-timing-inside-h2.md)
+Status: **Rejected by experiment 016** (timed H2 was worse than untimed; the code was deleted, commit ef516db holds it)   Date: 2026-11-07   Where: `agents/momentum.py` (`TimedMomentum`)   Evidence: [exp 016](../experiments/016-timing-inside-h2.md)
 
 ## Context
 Plan decision 0034: each admitted agent is run timed against its untimed twin on the same dev data and timing is kept only if it helps. H2 was admitted in experiment 015b. Timing cannot create an edge; it can only help where an edge varies with an observable state. The skill of a per-period trend signal is very noisy (two coins: the per-period slope has a standard deviation of about 0.7 against a card IC of 0.05), so an unconstrained state regression would mostly fit noise.

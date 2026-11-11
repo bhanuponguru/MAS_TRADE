@@ -1,6 +1,6 @@
 #!/bin/bash
 # Run a command in the code of an earlier commit, for experiments whose code was deleted afterwards (replacement rule,
-# decision 0032): 014 (8360532), 016 (394314e), the A5 rows of 021 (4194d43) and the legacy experiments 001-010
+# decision 0032): 014 (7e68e43), 016 (ef516db), the A5 rows of 021 (93b0fe7) and the legacy experiments 001-010
 # (tag legacy-v1-v2).
 #
 #   bash scripts/experiments/historic.sh COMMIT [--own-data] -- CMD ...

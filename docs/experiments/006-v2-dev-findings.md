@@ -1,6 +1,6 @@
 # 006. v2 engine: which agents and combiners have a net edge?
 
-Date: 2026-11-01 (`47fa8ee`)   Decisions: [0015](../decisions/0015-v2-absolute-return-engine.md)–[0020](../decisions/0020-v2-research-hygiene.md)
+Date: 2026-11-01 (`3e2c17e`)   Decisions: [0015](../decisions/0015-v2-absolute-return-engine.md)–[0020](../decisions/0020-v2-research-hygiene.md)
 Command: `uv run python run_v2_benchmark.py --bar 1d|4h|1h --universe broad [--smooth]`
 
 ## Status

@@ -1,6 +1,6 @@
 # 010. How the shield's cut is split across agents
 
-Date: 2026-11-05   Decision: [0029](../decisions/0029-shield-allocation-across-agents.md)   Code: working tree on top of `92ccc47`
+Date: 2026-11-05   Decision: [0029](../decisions/0029-shield-allocation-across-agents.md)   Code: working tree on top of `7eff0f1`
 Command (at the time): `uv run python run_safety_experiments.py --exp d029`. That option no longer exists; the `risk` variant can only be re-run after restoring the code below   Raw: `results/experiments/safety/{flat,hier,adversary}_*.csv`, `adversary_agent_scales.csv`
 
 ## Question

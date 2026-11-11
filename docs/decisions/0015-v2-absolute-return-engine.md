@@ -1,6 +1,6 @@
 # 0015. Start a second engine (v2) judged in absolute terms
 
-Status: **Superseded by 0032** (was: Accepted (now frozen if 0022 is accepted))   Date: 2026-11-01   Commit: `47fa8ee`   Where: `mas_trade/v2/`, `run_v2_benchmark.py`, `V2Config`
+Status: **Superseded by 0032** (was: Accepted (now frozen if 0022 is accepted))   Date: 2026-11-01   Commit: `3e2c17e`   Where: `mas_trade/v2/`, `run_v2_benchmark.py`, `V2Config`
 
 ## Context
 Comparing a long-short, gross-1 portfolio with BTC buy-and-hold mixes market exposure with skill.

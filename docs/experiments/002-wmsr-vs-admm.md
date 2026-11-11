@@ -3,7 +3,7 @@
 Date: re-run 2026-11-05 (both modes since `b48056d`)   Decisions: [0004](../decisions/0004-wmsr-consensus-with-pinning.md), [0005](../decisions/0005-admm-mode.md)
 Command: `uv run python run_backtest.py --mode wmsr` vs `--mode admm`
 
-Numbers re-run on 2026-11-05 (code `92ccc47` + Phase 1 working tree with the shield off, which a test guarantees is identical to the pre-STL code). The original runs were never saved (`results/` is gitignored).
+Numbers re-run on 2026-11-05 (code `7eff0f1` + Phase 1 working tree with the shield off, which a test guarantees is identical to the pre-STL code). The original runs were never saved (`results/` is gitignored).
 
 ## Variants
 | Variant | What it does |

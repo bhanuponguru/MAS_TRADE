@@ -24,7 +24,7 @@ Dates are commit dates. Within one commit the order is logical (data -> agents -
 | [0008](0008-no-lookahead-invariant.md) | No lookahead is a tested invariant | Accepted | `test_no_lookahead` | tests |
 | [0009](0009-tooling.md) | uv, data/results out of git, all knobs in Config | Accepted | — | — |
 
-### Hierarchy, 24/7 crypto and the v2 engine: 2026-11-01 (`47fa8ee`) and 2026-11-05 (`92ccc47`)
+### Hierarchy, 24/7 crypto and the v2 engine: 2026-11-01 (`3e2c17e`) and 2026-11-05 (`7eff0f1`)
 | # | Decision | Status | Flag / where | Evidence |
 |---|---|---|---|---|
 | [0010](0010-hierarchy.md) | Two-level hierarchy with per-asset subagents | Superseded by [0032](0032-replace-v1-v2.md) | `hierarchical` | [exp 004](../experiments/004-hierarchy.md) |
@@ -65,7 +65,7 @@ Records 0001-0031 describe the legacy implementation (tag `legacy-v1-v2`). Those
 | [0036](0036-risk-model-and-stl-placement.md) | Factor risk model, priced limits inside the ADMM, STL placements | Accepted (design) | `risk.py`, `stl.py` | [exp 008-010](../experiments/) |
 | [0037](0037-extended-data-store.md) | Extended data store: all kline columns, premium index, spot, hourly metrics; audits | Accepted | `data.py`, `download_data.py` | [exp 011](../experiments/011-data-audit.md) |
 | [0038](0038-beliefs-calibrated-to-the-hypothesis-card.md) | Belief scale from the hypothesis card, evidence only switches an agent off (kill rule); volatility limit through risk aversion | Accepted | `agents/base.py`, `engine.py` | [exp 013](../experiments/013-carry-baseline-on-real-data.md) |
-| [0039](0039-timing-inside-the-belief-of-h2.md) | Timing inside H2's belief: two mechanism-based states, shrunk and sign-constrained | Rejected (code deleted) | none (commit 394314e) | [exp 016](../experiments/016-timing-inside-h2.md) |
+| [0039](0039-timing-inside-the-belief-of-h2.md) | Timing inside H2's belief: two mechanism-based states, shrunk and sign-constrained | Rejected (code deleted) | none (commit ef516db) | [exp 016](../experiments/016-timing-inside-h2.md) |
 | [0040](0040-reversal-agent-and-admission-gate.md) | H4 residual reversal as the third agent, and the full admission gate (stand-alone Sharpe, IC, alpha vs the others) | Accepted (agent not admitted: loses net of costs; experiments 017/018) | `agents/reversal.py` | [exp 017](../experiments/017-reversal-and-the-market-of-three.md), [018](../experiments/018-rerun-after-volatility-limit-fix.md) |
 | [0041](0041-h2-kept-as-provisional-agent.md) | H2 (BTC/ETH momentum) stays in the roster as a provisional agent: not admitted by its own rule after the fix, kept for the coordination experiments, no claim of its edge | Accepted | roster (no code) | [exp 015](../experiments/015-time-series-momentum-and-the-market.md), [018](../experiments/018-rerun-after-volatility-limit-fix.md) |
 | [0042](0042-decentralised-cell-admm-over-a-graph.md) | Decentralised cell ADMM over a communication graph: each agent keeps its own estimate of the average position and its own price, mixed with neighbours only (dynamic average consensus); `consensus = hub | graph` | Accepted (implementation) | `graph_admm.py`, `engine.py`, `config.py` | tests; [exp 019](../experiments/019-graph-admm-on-real-data.md) |

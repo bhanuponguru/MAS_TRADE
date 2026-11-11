@@ -1,6 +1,6 @@
 # 0021. v2: decentralised consensus-ADMM combiner on a ring
 
-Status: **Superseded by 0032** (was: Accepted)   Date: 2026-11-05   Commit: `92ccc47`   Where: `v2/admm.py`, `combiners.admm_consensus`; `V2Config.admm_*`
+Status: **Superseded by 0032** (was: Accepted)   Date: 2026-11-05   Commit: `7eff0f1`   Where: `v2/admm.py`, `combiners.admm_consensus`; `V2Config.admm_*`
 
 ## Context
 The v1 ADMM (0005) has a global average step. The proposal is about decentralised agents.

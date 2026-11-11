@@ -88,7 +88,7 @@ def network(kind, M, seed=0):
 def extreme_share(S, A):
     """E[i, j]: the share of coordinates in which neighbour j sent agent i the most extreme value beyond i's own, i.e. the
     value W-MSR with F = 1 would discard first (W-MSR's trimmed MIXING was rejected in experiment 021: it breaks the
-    optimiser's sum invariant; its code is at commit 4194d43). An honest neighbour is extreme now and then; a neighbour that adds a lie to
+    optimiser's sum invariant; its code is at commit 93b0fe7). An honest neighbour is extreme now and then; a neighbour that adds a lie to
     everything it sends is extreme almost everywhere, every iteration."""
     E = np.zeros(A.shape)
     for i in range(len(S)):

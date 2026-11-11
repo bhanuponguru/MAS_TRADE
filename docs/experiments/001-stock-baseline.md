@@ -3,7 +3,7 @@
 Date: first run 2026-10-18 (initial commit `b48056d`); numbers below re-run   Decisions: [0001](../decisions/0001-us-stock-universe.md)–[0008](../decisions/0008-no-lookahead-invariant.md)
 Command: `uv run python run_backtest.py`
 
-Numbers re-run on 2026-11-05 (code `92ccc47` + Phase 1 working tree with the shield off, which a test guarantees is identical to the pre-STL code). The original runs were never saved (`results/` is gitignored).
+Numbers re-run on 2026-11-05 (code `7eff0f1` + Phase 1 working tree with the shield off, which a test guarantees is identical to the pre-STL code). The original runs were never saved (`results/` is gitignored).
 
 ## Question
 Does the consensus system (W-MSR F=1, K=10, pin 0.3, capital flow eta 0.5) beat its own agents and simple baselines?

@@ -1,6 +1,6 @@
 # 0009. Tooling: uv, data and results out of git
 
-Status: **Accepted**   Date: 2026-10-20   Commit: `8e1b394`   Where: `pyproject.toml`, `.gitignore`
+Status: **Accepted**   Date: 2026-10-20   Commit: `375244a`   Where: `pyproject.toml`, `.gitignore`
 
 ## Decision
 - `uv` for environments and running (`uv sync`, `uv run ...`), no pip/venv.

@@ -7,7 +7,7 @@ No full re-run is planned. This note records how every result was produced, so t
 | In the repository | Not in the repository (gitignored or on another machine) |
 |---|---|
 | All code, the tests, the pre-registered rules and the write-up of every experiment (`docs/experiments/`), the decisions (`docs/decisions/`), and the small result tables of every experiment (`docs/experiments/data/`) | the raw data (`data/`, about 1.9 GB), the saved runs (`results/`), the trial log (`results/trials.jsonl`) |
-| The legacy implementation, at git tag `legacy-v1-v2` (commit `cf16351`) | the saved runs of experiments 018 to 023, which were produced on the second contributor's machine |
+| The legacy implementation, at git tag `legacy-v1-v2` (commit `b24f70a`) | the saved runs of experiments 018 to 023, which were produced on the second contributor's machine |
 | A register of the strategy variants behind the deflated Sharpe: `docs/experiments/data/023/trial_register.csv` | |
 | One script per experiment (`scripts/experiments/`), the original batch scripts of 018 to 022 (`scripts/experiments/original/`) and the code of the tables of 020, 021 and 022 (`experiment_tables.py`) | |
 
@@ -58,7 +58,7 @@ Commands are as given in each experiment write-up; all runs are on the developme
 | 023 final table | `final_table.py` (reads the saved runs of 018 to 022 and the trial log) | seconds, after the runs exist |
 | Dashboard | `uv run --group dashboard streamlit run dashboard.py` | interactive |
 
-Experiments 014 (funding forecast) and 016 (timing) used code that was deleted when the experiments were rejected; it is kept in the history (`8360532` and `394314e` respectively), and the trimmed-mixing variant of experiment 021 at `4194d43`. The legacy experiments 001 to 010 are reproduced by checking out the tag `legacy-v1-v2`.
+Experiments 014 (funding forecast) and 016 (timing) used code that was deleted when the experiments were rejected; it is kept in the history (`7e68e43` and `ef516db` respectively), and the trimmed-mixing variant of experiment 021 at `93b0fe7`. The legacy experiments 001 to 010 are reproduced by checking out the tag `legacy-v1-v2`.
 
 ## The trial log and the deflated Sharpe
 

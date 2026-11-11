@@ -1,6 +1,6 @@
 # Reference numbers from the legacy implementation
 
-Small copies of result tables produced by the legacy v1 (consensus MAS) and v2 (books/combiners) code, kept so the new system can be checked against them without carrying that code. The code itself is at git tag `legacy-v1-v2` (commit `cf16351`); check it out in a separate worktree to regenerate anything here.
+Small copies of result tables produced by the legacy v1 (consensus MAS) and v2 (books/combiners) code, kept so the new system can be checked against them without carrying that code. The code itself is at git tag `legacy-v1-v2` (commit `b24f70a`); check it out in a separate worktree to regenerate anything here.
 
 | Folder | Source command (at the tag) | Contents |
 |---|---|---|

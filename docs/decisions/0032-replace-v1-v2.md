@@ -16,7 +16,7 @@ The repository held two engines: v1 (consensus MAS: W-MSR, trust, capital flow, 
 ## Decision
 Option 3. Superseded code is deleted, not preserved. History is kept only as:
 - the experiments and decision records (this folder and `../experiments/`), statuses changed to Superseded;
-- git tag `legacy-v1-v2` (commit `cf16351`): reproducing an old result means checking out that tag in a separate worktree;
+- git tag `legacy-v1-v2` (commit `b24f70a`): reproducing an old result means checking out that tag in a separate worktree;
 - small reference tables in `../experiments/data/` (dev-period only; the sealed-holdout tables were not copied).
 README describes only the new system.
 

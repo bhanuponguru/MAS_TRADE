@@ -1,9 +1,9 @@
 # 003. Resilience to one compromised agent: plain consensus vs W-MSR
 
-Date: script since `b48056d`, `--hier` since `47fa8ee`; numbers re-run   Decisions: [0002](../decisions/0002-heterogeneous-agents.md), [0004](../decisions/0004-wmsr-consensus-with-pinning.md), [0006](../decisions/0006-capital-flows-through-w.md)
+Date: script since `b48056d`, `--hier` since `3e2c17e`; numbers re-run   Decisions: [0002](../decisions/0002-heterogeneous-agents.md), [0004](../decisions/0004-wmsr-consensus-with-pinning.md), [0006](../decisions/0006-capital-flows-through-w.md)
 Command: `uv run python run_adversary_experiment.py [--hier]`
 
-Numbers re-run on 2026-11-05 (code `92ccc47` + Phase 1 working tree with the shield off, which a test guarantees is identical to the pre-STL code). The original runs were never saved (`results/` is gitignored).
+Numbers re-run on 2026-11-05 (code `7eff0f1` + Phase 1 working tree with the shield off, which a test guarantees is identical to the pre-STL code). The original runs were never saved (`results/` is gitignored).
 
 ## Variants
 | Variant | Agents | Consensus |

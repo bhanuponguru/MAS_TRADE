@@ -65,7 +65,7 @@ def jobs():
             out += [("liar", g, r, s, 0.0, "constant", d, "detect") for d in (0.001, 0.01, 1.0)]
             out += [("liar", g, r, s, 0.0, "constant", 0.01, "none")]
         for g, r in GRAPHS[:2]:
-            out += [("liar", g, r, s, 0.0, "noise", 0.01, "detect")]   # the trimmed-mixing cases (A5) ran at commit 4194d43
+            out += [("liar", g, r, s, 0.0, "noise", 0.01, "detect")]   # the trimmed-mixing cases (A5) ran at commit 93b0fe7
     return out
 
 

@@ -1,6 +1,6 @@
 # 0010. Two-level hierarchy: per-asset subagents inside each strategy
 
-Status: **Superseded by 0032** (was: Accepted (opt-in))   Date: 2026-11-01   Commit: `47fa8ee`   Where: `mas_trade/hierarchy.py`; `Config.hierarchical=False`, `eta_sub`, `g_min`, `F_sub`, `sub_graph`
+Status: **Superseded by 0032** (was: Accepted (opt-in))   Date: 2026-11-01   Commit: `3e2c17e`   Where: `mas_trade/hierarchy.py`; `Config.hierarchical=False`, `eta_sub`, `g_min`, `F_sub`, `sub_graph`
 
 ## Context
 At level 1, agents only move capital between whole strategies. A second level lets each strategy move capital between the assets it trades, based on which bets pay off.

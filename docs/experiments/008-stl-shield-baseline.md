@@ -1,6 +1,6 @@
 # 008. Phase 1: STL monitor, shield and centralised baseline
 
-Date: 2026-11-05 (Phase 1 working tree on `92ccc47`)   Decisions: [0023](../decisions/0023-stl-implementation.md)–[0027](../decisions/0027-centralised-baseline.md)
+Date: 2026-11-05 (Phase 1 working tree on `7eff0f1`)   Decisions: [0023](../decisions/0023-stl-implementation.md)–[0027](../decisions/0027-centralised-baseline.md)
 Command: `uv run python run_backtest.py` (MAS, MAS+STL, Central MV; `results/stl_summary.csv`, `results/stl_robustness.png`)
 
 ## Variants

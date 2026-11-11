@@ -32,7 +32,7 @@ What the numbers say: at holding periods of 2 to 14 days the AR(1)-premium forec
 **Not run: R2 (price term) and R3 (tail cap).** R2 needs the open-interest data, still downloading (33 of 243 symbols after several hours); R3 needs the high/low columns wired into the panel.
 
 ## Code of the rejected rung
-The R1 model (`mas_trade/funding.py`), the hourly premium loader (`data.load_premium`, `Panel.prem`), the block bootstrap of a mean and the gate script existed at commit `8360532` (the last commit that contains it). Reproduce with `git checkout 8360532` and `uv run python run_funding_gate.py`.
+The R1 model (`mas_trade/funding.py`), the hourly premium loader (`data.load_premium`, `Panel.prem`), the block bootstrap of a mean and the gate script existed at commit `7e68e43` (the last commit that contains it). Reproduce with `git checkout 7e68e43` and `uv run python run_funding_gate.py`.
 
 ## Changes to rules
 None yet.

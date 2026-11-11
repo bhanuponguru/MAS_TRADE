@@ -1,6 +1,6 @@
 # 0013. Crypto data: Binance USD-M, point-in-time and survivorship-free
 
-Status: **Accepted**   Date: 2026-11-01   Commit: `47fa8ee`   Where: `mas_trade/crypto_data.py`, `download_crypto_data.py`
+Status: **Accepted**   Date: 2026-11-01   Commit: `3e2c17e`   Where: `mas_trade/crypto_data.py`, `download_crypto_data.py`
 
 ## Decision
 - Klines and funding from Binance's public dump bucket, including delisted symbols (survivorship-free), cached as parquet in `data/crypto/`.

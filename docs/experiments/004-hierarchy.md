@@ -1,9 +1,9 @@
 # 004. Flat vs hierarchical capital allocation
 
-Date: since `47fa8ee`; numbers re-run   Decision: [0010](../decisions/0010-hierarchy.md)
+Date: since `3e2c17e`; numbers re-run   Decision: [0010](../decisions/0010-hierarchy.md)
 Command: `uv run python run_backtest.py` (reports MAS and MAS-H)
 
-Numbers re-run on 2026-11-05 (code `92ccc47` + Phase 1 working tree with the shield off, which a test guarantees is identical to the pre-STL code). The original runs were never saved (`results/` is gitignored).
+Numbers re-run on 2026-11-05 (code `7eff0f1` + Phase 1 working tree with the shield off, which a test guarantees is identical to the pre-STL code). The original runs were never saved (`results/` is gitignored).
 
 ## Variants
 | Variant | What it does |

@@ -1,6 +1,6 @@
 # 0012. Generalise the engine to 24/7 perpetual futures
 
-Status: **Superseded by 0032** (was: Accepted)   Date: 2026-11-01   Commit: `47fa8ee`   Where: `run_backtest(..., eligible, funding)`, `Config.periods_per_year`, `Config.for_tier`, `default_agents(scale)`
+Status: **Superseded by 0032** (was: Accepted)   Date: 2026-11-01   Commit: `3e2c17e`   Where: `run_backtest(..., eligible, funding)`, `Config.periods_per_year`, `Config.for_tier`, `default_agents(scale)`
 
 ## Context
 Stocks give one market and a survivorship-biased universe (0001). Crypto perps trade 24/7 with listings, delistings and funding payments.

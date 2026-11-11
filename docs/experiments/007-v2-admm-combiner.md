@@ -1,6 +1,6 @@
 # 007. v2 decentralised ADMM combiner with true costs
 
-Date: 2026-11-05 (`92ccc47`)   Decision: [0021](../decisions/0021-v2-decentralised-admm.md)
+Date: 2026-11-05 (`7eff0f1`)   Decision: [0021](../decisions/0021-v2-decentralised-admm.md)
 Command: `uv run python run_v2_benchmark.py --bar ...` (ADMM rows, plus `admm_convergence.csv`)
 
 ## Status
