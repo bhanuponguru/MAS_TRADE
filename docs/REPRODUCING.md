@@ -8,9 +8,10 @@ No full re-run is planned. This note records how every result was produced, so t
 |---|---|
 | All code, the tests, the pre-registered rules and the write-up of every experiment (`docs/experiments/`), the decisions (`docs/decisions/`), and the small result tables of every experiment (`docs/experiments/data/`) | the raw data (`data/`, about 1.9 GB), the saved runs (`results/`), the trial log (`results/trials.jsonl`) |
 | The legacy implementation, at git tag `legacy-v1-v2` (commit `cf16351`) | the saved runs of experiments 018 to 023, which were produced on the second contributor's machine |
-| A register of the strategy variants behind the deflated Sharpe: `docs/experiments/data/023/trial_register.csv` | the original batch scripts of experiment 022 (`results/022/runs.sh`, `rerun_hold.sh`) |
+| A register of the strategy variants behind the deflated Sharpe: `docs/experiments/data/023/trial_register.csv` | |
+| One script per experiment (`scripts/experiments/`), the original batch scripts of 018 to 022 (`scripts/experiments/original/`) and the code of the tables of 020, 021 and 022 (`experiment_tables.py`) | |
 
-Every number in the report can therefore be traced to a committed table, but the saved runs behind the tables of experiments 018 to 023 cannot be regenerated without re-running them.
+Every number in the report can therefore be traced to a committed table, but the saved runs behind the tables of experiments 018 to 023 cannot be regenerated without re-running them. The scripts below re-run them.
 
 ## Environment
 
@@ -22,6 +23,23 @@ Every number in the report can therefore be traced to a committed table, but the
 - The snapshot used for the results ends on **2026-11-05** (the last Bitcoin daily bar). The development period is April 2020 to November 2025: trading starts on 2020-04-30 and the development period ends on 2025-11-04 (daily bars) and 2025-11-05 (4-hourly and hourly bars).
 - **The sealed window is defined relative to the last downloaded bar** (the 12 months before it). A download made on a later date moves the split and changes every number. To reproduce the results, truncate or pin the data to the snapshot above before running; the code does not do this by itself.
 - The sealed final year has not been examined and must only be opened once, with `--unseal`, after the design is frozen.
+
+## One script per experiment
+
+`scripts/experiments/` has a script for every experiment; run them from anywhere (they move to the repository root). Each engine run goes to `results/<tag>/run.log` with the tag and trial-log label of the original run, single-threaded BLAS and `--boot 500`; a run whose log shows it finished is skipped (`FORCE=1` re-runs it), up to `JOBS` runs (default 4) go in parallel, and `BARS="1d"` limits the bar sizes. With the saved runs present, the scripts regenerate the committed tables of 015, 017, 018, 020, 021, 022 and 023 byte for byte (checked on 2026-11-11).
+
+| Script | Experiment |
+|---|---|
+| `000_download_data.sh [--with-metrics]` | the data cache (read the snapshot note above first) |
+| `011_data_audit.sh`, `012_simulated_markets.sh` | data audit; simulated markets (the tests) |
+| `013_carry.sh`, `015_momentum.sh`, `017_reversal.sh` | the real-data runs of 013, 015b and 017 as re-run in 018, and their comparisons |
+| `018_rerun_all.sh` | all fifteen runs of 018 and every table read from them |
+| `019_graph_admm.sh`, `020_topology.sh [partA\|partB\|tables]`, `021_resilience.sh [partA\|partA5\|partB\|tables]`, `022_safety.sh [runs\|tables]` | 019 to 022; the tables of 020, 021 and 022 come from `experiment_tables.py` |
+| `023_final_table.sh` | the final comparison (after 018 to 022) |
+| `run_all.sh` | 012 and 018 to 023 in order (many hours) |
+| `014_carry_ladder.sh`, `016_timing.sh`, `021_resilience.sh partA5`, `legacy_001_010.sh 001..010` | experiments whose code was deleted: run at their commit by `historic.sh` in a git worktree under `results/historic/<commit>`, with their own `results/` so the current runs and trial log are not touched |
+
+The undefended liar runs (`021_liar_none`, `022_three_liar`) never finish (their solves diverge), so the scripts start them only with `WITH_UNDEFENDED_LIAR=1`. The first H2 runs of 015 (before H2 was restricted to Bitcoin and Ethereum) and the pre-fix runs of 013, 015 and 017 are superseded by 018 and are not re-made; 016 is re-made with its own (pre-fix) engine, as originally. Experiment 010 can only be re-run for the `uniform` variant.
 
 ## Experiments, commands and cost
 
@@ -36,7 +54,7 @@ Commands are as given in each experiment write-up; all runs are on the developme
 | 019 decentralised against hub | `run_benchmark.py --bar 1d --agents RankCarry TSMomentum RankReversal --consensus graph --topology complete|line [--rounds 3]` | minutes |
 | 020 topology | `run_topology.py --workers 4` (Part A); Part B commands in the write-up | about 3 hours |
 | 021 resilience | `run_resilience.py --workers 3` (Part A); Part B commands in the write-up | about 3.5 hours |
-| 022 safety | `run_benchmark.py ... --safety off|derisk|hold` and the liar options (`--faulty`, `--attack`, `--attack-kind noise`, `--faulty-window`); ten runs, tags `022_*`. The original batch script is not in the repository | hours (an undefended liar run does not finish: its solves diverge) |
+| 022 safety | `run_benchmark.py ... --safety off|derisk|hold` and the liar options (`--faulty`, `--attack`, `--attack-kind noise`, `--faulty-window`); ten runs, tags `022_*` (`scripts/experiments/022_safety.sh`; original batch scripts in `scripts/experiments/original/`); tables by `experiment_tables.py 022` | hours (an undefended liar run does not finish: its solves diverge) |
 | 023 final table | `final_table.py` (reads the saved runs of 018 to 022 and the trial log) | seconds, after the runs exist |
 | Dashboard | `uv run --group dashboard streamlit run dashboard.py` | interactive |
 

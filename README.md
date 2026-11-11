@@ -21,7 +21,7 @@ uv run python download_data.py [--bars 1d 4h 1h] [--top 50] [--datasets klines f
 uv run python run_benchmark.py --bar 1d --agents RankCarry TSMomentum    # the engine on real data, development period only
 uv run --group dashboard streamlit run dashboard.py        # the interactive dashboard
 ```
-The sealed window is the 12 months before the last downloaded bar, so results depend on the data snapshot (the published numbers use one ending on 2026-11-05). How every result was produced, what is and is not in the repository, and the known gaps are in [docs/REPRODUCING.md](docs/REPRODUCING.md).
+The sealed window is the 12 months before the last downloaded bar, so results depend on the data snapshot (the published numbers use one ending on 2026-11-05). Every experiment has a script in `scripts/experiments/` (for example `bash scripts/experiments/022_safety.sh`). How every result was produced, what is and is not in the repository, and the known gaps are in [docs/REPRODUCING.md](docs/REPRODUCING.md).
 
 ## Documentation
 - [docs/REPORT.md](docs/REPORT.md) the research report; [docs/REPRODUCING.md](docs/REPRODUCING.md) reproduction notes.
